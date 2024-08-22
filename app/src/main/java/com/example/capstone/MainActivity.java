@@ -1,6 +1,8 @@
 package com.example.capstone;
 
+import android.content.Intent;
 import android.os.Bundle;
+import android.view.View;
 
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
@@ -26,7 +28,14 @@ public class MainActivity extends AppCompatActivity {
             return insets;
         });
          */
-
+    }
+        public void goto_LoginActivity (View view){//Method to navigate to LoginActivity
+            Intent intent = new Intent(this, LoginActivity.class);
+            startActivity(intent);
+        }
+        public void goto_ActivityRegister (View view){//Method to navigate to ActivityRegister
+            Intent intent = new Intent(this, ActivityRegister.class);
+            startActivity(intent);
 
     }
 }
