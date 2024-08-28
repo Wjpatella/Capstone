@@ -1,4 +1,5 @@
 package com.example.capstone;
+import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
@@ -17,6 +18,7 @@ import android.widget.MultiAutoCompleteTextView;
 import android.widget.Spinner;
 import android.widget.Toast;
 
+import androidx.activity.EdgeToEdge;
 
 
 public class ActivityRegister extends MainActivity {
@@ -47,6 +49,7 @@ public class ActivityRegister extends MainActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        EdgeToEdge.enable(this);
         setContentView(R.layout.activity_register);
 
         cloud_fs_db = FirebaseFirestore.getInstance();//Initialize firebase
@@ -132,5 +135,11 @@ public class ActivityRegister extends MainActivity {
          });
 
         }
+
+        public void goto_main_activity(View view) {
+        Intent intent = new Intent(this, MainActivity.class);
+        startActivity(intent);
+        }
+
 }
 

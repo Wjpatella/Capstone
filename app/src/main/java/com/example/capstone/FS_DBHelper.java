@@ -73,6 +73,53 @@ public class FS_DBHelper {
         cloud_fs_db.collection("teachers").get().addOnCompleteListener(onCompleteListener);
     }
 
+    public static void checkUsers(String username, String password, OnUserCheckCompleteListener listener){//checks for users in the database
+        FirebaseFirestore cloud_fs_db = FirebaseFirestore.getInstance();
+        if (!username.isEmpty() && !password.isEmpty()) {//makes sure both are filled with a string
+            cloud_fs_db.collection("teachers")
+                    .whereEqualTo("name", username)
+                    .whereEqualTo("teacher_password", password)
+                    .get()
+                    .addOnCompleteListener(task_find_teacher -> {
+                if (task_find_teacher.isSuccessful() && !task_find_teacher.getResult().isEmpty()) {
+
+                    listener.onSuccess();
+                    //teacher found
+
+                }
+                else {
+                    //check students collection if the teacher is not found
+                    cloud_fs_db.collection("students")
+                            .whereEqualTo("name", username)
+                            .whereEqualTo("student_password", password)
+                            .get()
+                            .addOnCompleteListener(task_find_students -> {
+                                if (task_find_students.isSuccessful() && !task_find_students.getResult().isEmpty()) {
+                                    listener.onSuccess();
+                                    //student found
+                                } else {
+                                    listener.onFailure();
+                                    //Neither teacher or student found
+                                }
+                            });
+
+                }
+
+                });
+
+        }
+        else {
+            //username or password was empty
+            listener.onFailure();
+        }
+    }
+
+    public interface OnUserCheckCompleteListener {//informs caller of success in task or not. Works with checkUser
+        void onSuccess();
+        void onFailure();
+    }
+
+
     /*
     public static void updateTeacherList(){
         private ArrayList<String> teacherList;

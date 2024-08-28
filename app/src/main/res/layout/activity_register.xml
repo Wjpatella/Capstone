@@ -5,6 +5,24 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
+
+    <ImageButton
+        android:id="@+id/ActivityRegister_imageButton"
+        android:layout_width="60dp"
+        android:layout_height="40dp"
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="16dp"
+        android:layout_marginEnd="335dp"
+        android:layout_marginBottom="655dp"
+        android:background="@drawable/rounded_button"
+        android:onClick="goto_main_activity"
+        android:scaleType="centerInside"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:srcCompat="@drawable/back_arrow"
+        />
     <!-- Teacher -->
 
     <TextView
@@ -30,7 +48,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginStart="72dp"
-        android:layout_marginTop="30dp"
+        android:layout_marginTop="50dp"
         android:text="Teacher"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/Register_textView" />
@@ -40,7 +58,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginStart="104dp"
-        android:layout_marginTop="30dp"
+        android:layout_marginTop="50dp"
         android:layout_marginEnd="72dp"
         android:text="Student"
         app:layout_constraintEnd_toEndOf="parent"
@@ -55,7 +73,7 @@
         android:layout_height="wrap_content"
         android:layout_gravity="center"
         android:layout_marginStart="100dp"
-        android:layout_marginTop="100dp"
+        android:layout_marginTop="130dp"
         android:layout_marginEnd="100dp"
         android:orientation="vertical"
         android:visibility="invisible"
@@ -104,7 +122,7 @@
         android:layout_height="wrap_content"
         android:layout_gravity="center"
         android:layout_marginStart="100dp"
-        android:layout_marginTop="100dp"
+        android:layout_marginTop="130dp"
         android:layout_marginEnd="100dp"
         android:orientation="vertical"
         android:visibility="invisible"
@@ -159,7 +177,7 @@
         android:layout_height="wrap_content"
         android:layout_gravity="center_horizontal"
         android:layout_marginStart="120dp"
-        android:layout_marginTop="360dp"
+        android:layout_marginTop="390dp"
         android:layout_marginEnd="120dp"
         android:text="Create Account"
         app:layout_constraintEnd_toEndOf="parent"
