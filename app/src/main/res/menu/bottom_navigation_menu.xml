@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:id="@+id/nav_profile"
+        android:icon="@drawable/baseline_account_box_24"
+        android:title="Profile" />
+    <item
+        android:id="@+id/nav_games"
+        android:icon="@drawable/baseline_games_24"
+        android:title="Games" />
+    <item
+        android:id="@+id/nav_classroom"
+        android:icon="@drawable/baseline_backpack_24"
+        android:title="Classroom" />
+    <item
+        android:id="@+id/nav_leaderboard"
+        android:icon="@drawable/baseline_density_small_24"
+        android:title="Leaderboard" />
+</menu>

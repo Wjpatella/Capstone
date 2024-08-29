@@ -55,6 +55,8 @@ public class LoginActivity extends AppCompatActivity {
                 public void onSuccess() {
                     Toast.makeText(LoginActivity.this, "Login successful", Toast.LENGTH_SHORT).show();
                     //go to directory   go_to_directory(v);
+                    Intent intent = new Intent(LoginActivity.this, Directory.class);
+                    startActivity(intent);
                 }
 
                 @Override
@@ -77,5 +79,6 @@ public class LoginActivity extends AppCompatActivity {
         Intent intent = new Intent(this, MainActivity.class);
         startActivity(intent);
     }
+
 
 }
