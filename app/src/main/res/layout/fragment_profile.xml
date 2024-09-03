@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     xmlns:app="http://schemas.android.com/apk/res-auto"
@@ -18,5 +19,74 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
+
+    <ImageView
+        android:id="@+id/teacher_profile_image"
+        android:layout_width="137dp"
+        android:layout_height="182dp"
+        android:layout_marginStart="16dp"
+        android:layout_marginEnd="21dp"
+        android:visibility="gone"
+        app:layout_constraintEnd_toStartOf="@+id/profile_linearlayout"
+        app:layout_constraintStart_toStartOf="parent"
+        app:srcCompat="@drawable/owl_teacher"
+        tools:layout_editor_absoluteY="16dp" />
+
+    <ImageView
+        android:id="@+id/student_profile_image"
+        android:layout_width="120dp"
+        android:layout_height="166dp"
+        android:layout_marginEnd="25dp"
+        android:visibility="gone"
+        app:layout_constraintEnd_toStartOf="@+id/profile_linearlayout"
+        app:layout_constraintHorizontal_bias="1.0"
+        app:layout_constraintStart_toEndOf="@+id/teacher_profile_image"
+        app:srcCompat="@drawable/penguin_student"
+        tools:layout_editor_absoluteY="32dp" />
+
+    <LinearLayout
+        android:id="@+id/profile_linearlayout"
+        android:layout_width="228dp"
+        android:layout_height="316dp"
+        android:layout_marginTop="20dp"
+        android:layout_marginEnd="120dp"
+        android:layout_marginBottom="399dp"
+        android:orientation="vertical"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.425"
+        app:layout_constraintStart_toEndOf="@+id/leaderboard_textview"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="1.0">
+
+        <!-- teacher text-->
+        <TextView
+            android:id="@+id/teacher_viewtext"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text=""
+            android:textAlignment="center"
+            android:textSize="34dp"
+            android:visibility="gone"
+            tools:layout_editor_absoluteX="175dp"
+            tools:layout_editor_absoluteY="126dp" />
+        <!-- teacher text-->
+
+        <!-- student text-->
+        <TextView
+            android:id="@+id/student_viewtext"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text=""
+            android:textAlignment="center"
+            android:textSize="34dp"
+            android:visibility="gone"
+            tools:layout_editor_absoluteX="175dp"
+            tools:layout_editor_absoluteY="126dp" />
+        <!-- student text-->
+
+
+    </LinearLayout>
+
 
 </androidx.constraintlayout.widget.ConstraintLayout>

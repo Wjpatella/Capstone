@@ -49,6 +49,10 @@ public class LoginActivity extends AppCompatActivity {
         if (username.isEmpty() || password.isEmpty()) {//checks to make sure all fields are filled
             Toast.makeText(LoginActivity.this, "Please enter all the fields", Toast.LENGTH_SHORT).show();
         } else {
+
+            FS_DBHelper.Student_online=false;//reset the online status
+            FS_DBHelper.Teacher_online=false;
+
             //calls the checkUsers method from the FS_DBHelper class to check if the user exists
             FS_DBHelper.checkUsers(username, password, new FS_DBHelper.OnUserCheckCompleteListener() {
                 @Override

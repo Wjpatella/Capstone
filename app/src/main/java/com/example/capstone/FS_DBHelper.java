@@ -3,9 +3,11 @@ package com.example.capstone;
 import static androidx.core.content.ContentProviderCompat.requireContext;
 import static java.security.AccessController.getContext;
 
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QuerySnapshot;
 
@@ -14,6 +16,12 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class FS_DBHelper {
+
+    public static String Online_user_id=null;
+
+    public static Boolean Teacher_online=false;
+
+    public static Boolean Student_online=false;
 
     private  FirebaseFirestore cloud_fs_db;//declare firebase firestore
 
@@ -83,6 +91,8 @@ public class FS_DBHelper {
                     .addOnCompleteListener(task_find_teacher -> {
                 if (task_find_teacher.isSuccessful() && !task_find_teacher.getResult().isEmpty()) {
 
+                    Online_user_id = task_find_teacher.getResult().getDocuments().get(0).getId();//fethces the id of the teacher
+                    Teacher_online=true;
                     listener.onSuccess();
                     //teacher found
 
@@ -95,6 +105,10 @@ public class FS_DBHelper {
                             .get()
                             .addOnCompleteListener(task_find_students -> {
                                 if (task_find_students.isSuccessful() && !task_find_students.getResult().isEmpty()) {
+
+                                    Online_user_id = task_find_students.getResult().getDocuments().get(0).getId();//fethces the id of the student
+                                    Student_online=true;
+
                                     listener.onSuccess();
                                     //student found
                                 } else {
@@ -119,6 +133,64 @@ public class FS_DBHelper {
         void onFailure();
     }
 
+
+    public interface FetchTeacherDataCallback {
+        void onDataFetched(String teacherName);//add more data here later
+    }
+
+    public static void fetchTeacherData(FetchTeacherDataCallback fetch_teacher_data_callback){
+        FirebaseFirestore cloud_fs_db = FirebaseFirestore.getInstance();
+        cloud_fs_db.collection("teachers").document(Online_user_id).get().addOnCompleteListener(task_fetch_teacher_data ->{//fetch teacher based off id
+            if(task_fetch_teacher_data.isSuccessful()){
+                DocumentSnapshot teacher_id = task_fetch_teacher_data.getResult();
+                if (teacher_id != null) {
+                    String teacher_name = teacher_id.getString("name");
+                    //String teacher_email = teacher_id.getString("email");
+
+                    // Trigger the callback with values
+                    if (fetch_teacher_data_callback != null) {
+                        fetch_teacher_data_callback.onDataFetched(teacher_name);//add more here later;
+                    }
+                }
+            } else {
+                // Handle error or return some default value
+                if (fetch_teacher_data_callback != null) {
+                    fetch_teacher_data_callback.onDataFetched(null);//add more here later;
+                }
+            }
+        });
+    }
+
+    public interface FetchStudentDataCallback {
+        void onDataFetched(String studentName);//add more data here later
+    }
+
+    public static void fetchStudentData(FetchStudentDataCallback fetch_student_data_callback){
+        FirebaseFirestore cloud_fs_db = FirebaseFirestore.getInstance();
+        cloud_fs_db.collection("students").document(Online_user_id).get().addOnCompleteListener(task_fetch_student_data ->{//fetch student based off id
+            if(task_fetch_student_data.isSuccessful()){
+                DocumentSnapshot student_id = task_fetch_student_data.getResult();
+                if (student_id != null) {
+                    String student_name = student_id.getString("name");
+                    //String
+
+                    //Trigger the callback with values
+                    if (fetch_student_data_callback != null) {
+                        fetch_student_data_callback.onDataFetched(student_name);//add more here later;//sends back student name
+                    }
+                }
+            } else {
+                //Handle error or return some default value
+                if (fetch_student_data_callback != null) {
+                    fetch_student_data_callback.onDataFetched(null);//add more here later;
+                }
+            }
+        });
+    }
+
+    public static void fetchStudentData(){
+        FirebaseFirestore cloud_fs_db = FirebaseFirestore.getInstance();
+    }
 
     /*
     public static void updateTeacherList(){
