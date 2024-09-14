@@ -1,0 +1,27 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="400dp"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal"
+    android:padding="8dp">
+
+    <TextView
+        android:id="@+id/team_name"
+        android:layout_width="79dp"
+        android:layout_height="match_parent"
+        android:layout_weight="0"
+        android:fontFamily="sans-serif-medium"
+        android:shadowColor="@color/black"
+
+        android:textColor="@color/black"
+        android:textStyle="bold" />
+
+    <!-- Team Members -->
+    <TextView
+        android:id="@+id/members_text_view"
+        android:layout_width="300dp"
+        android:layout_height="wrap_content"
+
+        android:layout_weight="0"
+        android:paddingRight="8dp"
+        android:textSize="16sp" />
+</LinearLayout>

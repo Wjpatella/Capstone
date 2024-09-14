@@ -12,12 +12,139 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginStart="141dp"
-        android:layout_marginTop="294dp"
         android:layout_marginEnd="142dp"
         android:layout_marginBottom="418dp"
         android:text="Classroom fragment"
+        android:visibility="visible"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
-</androidx.constraintlayout.widget.ConstraintLayout>
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.234" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_marginTop="100dp"
+        android:layout_marginBottom="50dp"
+        android:orientation="vertical"
+        android:padding="16dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <!-- Class Selector (Spinner for selecting class) -->
+        <Spinner
+            android:id="@+id/class_spinner"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:paddingBottom="8dp" />
+
+        <!-- Action Bar -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="end"
+            android:orientation="horizontal">
+
+            <!-- Icon for Create Class (this opens a dialog) -->
+            <Button
+                android:id="@+id/create_classroom_button"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="8dp"
+                android:backgroundTint="#3762FF"
+                android:drawableLeft="@drawable/baseline_create_new_folder_24"
+                android:text="Create A Class"
+                android:textAllCaps="true"
+
+                android:textColor="#FBE202" />
+
+            <!-- Icon for add student action -->
+            <ImageButton
+                android:id="@+id/student_add_button"
+                android:layout_width="wrap_content"
+                android:layout_height="48dp"
+                android:layout_marginEnd="8dp"
+                android:backgroundTint="#40CD45"
+                android:contentDescription="Add studnet"
+
+                android:src="@drawable/student_add_24" />
+
+            <!-- Icon for remove student action -->
+            <ImageButton
+                android:id="@+id/student_remove_button"
+                android:layout_width="wrap_content"
+                android:layout_height="48dp"
+                android:backgroundTint="#CA4242"
+
+                android:contentDescription="Remove student"
+                android:src="@drawable/baseline_person_remove_24" />
+
+        </LinearLayout>
+
+        <!-- Grid of Students -->
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/student_grid"
+            android:layout_width="match_parent"
+            android:layout_height="210dp"
+            android:layout_marginBottom="8dp"
+            android:layout_weight="0"
+            android:background="@drawable/border"
+            android:scrollbars="vertical"
+            android:visibility="visible" />
+
+        <!-- Teams Section -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:paddingBottom="8dp"
+            android:text="Teams"
+            android:textSize="16sp"
+            android:textStyle="bold" />
+
+        <!-- List of Teams -->
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/teamsList"
+            android:layout_width="match_parent"
+            android:scrollbars="vertical"
+            android:layout_height="160dp"
+            android:layout_weight="0"
+            android:background="@drawable/border"
+            >
+
+        </androidx.recyclerview.widget.RecyclerView>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="horizontal">
+        <!-- Button to create new team -->
+        <Button
+            android:drawableLeft="@drawable/baseline_group_add_24"
+            android:id="@+id/create_team_button"
+            android:layout_width="wrap_content"
+            android:layout_height="48dp"
+            android:layout_marginEnd="8dp"
+            android:backgroundTint="#40CD45"
+
+            android:text="Create Team"
+             />
+            <!-- android:text="New Team"-->
+
+         <Button
+             android:id="@+id/disband_team_button"
+             android:layout_width="wrap_content"
+             android:layout_height="48dp"
+             android:backgroundTint="#CA4242"
+             android:text="Disband Team"
+             android:drawableLeft="@drawable/baseline_group_remove_24"
+
+             />
+            <!-- android:text="Disband Team"-->
+         </LinearLayout>
+
+     </LinearLayout>
+
+
+ </androidx.constraintlayout.widget.ConstraintLayout>

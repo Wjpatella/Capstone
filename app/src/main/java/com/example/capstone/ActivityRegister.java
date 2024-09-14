@@ -8,13 +8,13 @@ import android.widget.LinearLayout;
 import android.widget.ArrayAdapter;
 import android.widget.EditText;
 import java.util.ArrayList;
-import java.util.Arrays;
 
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.QuerySnapshot;
 
 
-import android.widget.MultiAutoCompleteTextView;
+
 import android.widget.Spinner;
 import android.widget.Toast;
 
@@ -113,20 +113,44 @@ public class ActivityRegister extends MainActivity {
         CreatAccountButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+
                 if (teacherCheckBox.isChecked() && !teacher_Name.getText().toString().isEmpty() && !teacher_Password.getText().toString().isEmpty() && !teacher_Email.getText().toString().isEmpty()) {
                     String teacherName = teacher_Name.getText().toString();
-                    String teacherPassword = teacher_Password.getText().toString();
-                    String teacherEmail = teacher_Email.getText().toString();
 
-                    FS_DBHelper.addTeacher(teacherName, teacherPassword, teacherEmail, null, null); //Calls the FS_DBHelper to add the teacher to the Cloudstore firebase
-                } else if (studentCheckBox.isChecked() && !student_Name.getText().toString().isEmpty() && !student_Password.getText().toString().isEmpty() && teachersSpinner.getSelectedItem() != null) {
+                    cloud_fs_db.collection("teachers").document(teacherName).get().addOnCompleteListener(task_check_if_Tname_taken ->{//check if the teacher name is already taken
+                        DocumentSnapshot document = task_check_if_Tname_taken.getResult();
+                        if (task_check_if_Tname_taken.isSuccessful() && document.exists()){
+                                Toast.makeText(ActivityRegister.this, "Teacher name already taken", Toast.LENGTH_SHORT).show();
+                        }
+                        else {
+                            
+                            String teacherPassword = teacher_Password.getText().toString();
+                            String teacherEmail = teacher_Email.getText().toString();
+
+                            FS_DBHelper.addTeacher(teacherName, teacherPassword, teacherEmail, null, null,null); //Calls the FS_DBHelper to add the teacher to the Cloudstore firebase
+                            goto_login_activity();
+                        }
+                    });
+
+                }
+
+                else if (studentCheckBox.isChecked() && !student_Name.getText().toString().isEmpty() && !student_Password.getText().toString().isEmpty() && teachersSpinner.getSelectedItem() != null) {
                     String studentName = student_Name.getText().toString();
-                    String studentPassword = student_Password.getText().toString();
 
-                    //Extract selected teachers from MultiAutoCompleteTextView
-                    String selectedTeacher = teachersSpinner.getSelectedItem().toString();
+                    cloud_fs_db.collection("students").whereEqualTo("name", studentName).get().addOnCompleteListener(task_check_if_Sname_taken -> {//check if the student name is already taken
+                        QuerySnapshot querySnapshot= task_check_if_Sname_taken.getResult();
+                        if (task_check_if_Sname_taken.isSuccessful() && !querySnapshot.isEmpty()) {
+                            Toast.makeText(ActivityRegister.this, "Student name already taken", Toast.LENGTH_SHORT).show();
+                        } else {
 
-                    FS_DBHelper.addStudent(studentName, studentPassword, selectedTeacher, null, null); //Calls the FS_DBHelper to add the student to the Cloudstore firebase
+                            String studentPassword = student_Password.getText().toString();
+                            //Extract selected teachers from MultiAutoCompleteTextView
+                            String selectedTeacher = teachersSpinner.getSelectedItem().toString();
+
+                            FS_DBHelper.addStudent(studentName, studentPassword, selectedTeacher, null, null); //Calls the FS_DBHelper to add the student to the Cloudstore firebase
+                            goto_login_activity();
+                        }
+                    });
                 }
                 else {
                     Toast.makeText(ActivityRegister.this, "You must select a checkbox and fill in all the required information.", Toast.LENGTH_SHORT).show();
@@ -140,6 +164,10 @@ public class ActivityRegister extends MainActivity {
         Intent intent = new Intent(this, MainActivity.class);
         startActivity(intent);
         }
+        public void goto_login_activity() {
+        Intent intent = new Intent(this, LoginActivity.class);
+        startActivity(intent);
+    }
 
 }
 
