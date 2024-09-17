@@ -23,6 +23,7 @@ import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FieldValue;
 import com.google.firebase.firestore.FirebaseFirestore;
@@ -47,6 +48,10 @@ public class ClassroomFragment extends Fragment {
     private Button disbandTeamButton;
 
     private ImageButton removeStudentButton;
+
+    private ImageButton editClassNameButton;
+
+    private ImageButton deleteClassButton;
 
     private FirebaseFirestore db;
     private List<String> classList;
@@ -77,6 +82,8 @@ public class ClassroomFragment extends Fragment {
         disbandTeamButton= view.findViewById(R.id.disband_team_button);
         addStudentButton = view.findViewById(R.id.student_add_button);
         removeStudentButton = view.findViewById(R.id.student_remove_button);
+        editClassNameButton = view.findViewById(R.id.edit_class_name_button);
+        deleteClassButton = view.findViewById(R.id.delete_class_button);
 
 
         //Initialize class and student lists
@@ -131,6 +138,12 @@ public class ClassroomFragment extends Fragment {
 
         //initialize dialog for disbanding teams on disband team button click
         disbandTeamButton.setOnClickListener(v -> showDisbandTeamsDialog());
+
+        //initialize dialog for editing class name on edit class name button click
+        editClassNameButton.setOnClickListener(v -> showEditClassNameDialog());
+
+        //initialize dialog for deleting class on delete class button click
+        deleteClassButton.setOnClickListener(v -> showDeleteClassDialog());
 
 
         return view;
@@ -290,6 +303,137 @@ public class ClassroomFragment extends Fragment {
             }
         });
     }
+
+    private void showEditClassNameDialog() {//dialog for editing a the curently selected class
+        if(Online_user_id != null){
+            dbHelper.getTeacherClasses(Online_user_id, classes -> {
+                if (classes == null) {
+                    //Show dialog for no classes or error. Handles error of no classes on new new teacher logging in
+                    showNoClassesDialog();
+                }
+                else {
+                    AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
+                    builder.setTitle("Edit Class Name");
+
+                    View viewInflated = LayoutInflater.from(getContext()).inflate(R.layout.dialog_edit_class, (ViewGroup) getView(), false);
+                    final EditText input = viewInflated.findViewById(R.id.input_new_class_name);
+                    builder.setView(viewInflated);
+
+                    builder.setPositiveButton(android.R.string.ok, (dialog, which) -> {
+                        dialog.dismiss();
+                        String newClassName = input.getText().toString().trim();
+                        if (!newClassName.isEmpty()) {
+                            String oldClassName = classSpinner.getSelectedItem().toString();
+                            renameClass(oldClassName, newClassName);
+                        }
+                    });
+                    builder.setNegativeButton(android.R.string.cancel, (dialog, which) -> dialog.cancel());
+
+                    builder.show();
+
+                }
+
+
+            });
+        }
+
+    }
+
+    private void renameClass(String oldClassName, String newClassName) {//method for renaming a class
+        if (Online_user_id == null) {
+            Log.e("ClassroomFragment", "No online user ID found.");
+            return;
+        }
+
+        DocumentReference teacherRef = db.collection("teachers").document(Online_user_id);
+
+        teacherRef.get().addOnSuccessListener(documentSnapshot -> {
+            if (documentSnapshot.exists()) {
+                Map<String, Object> teacherData = documentSnapshot.getData();
+                if (teacherData != null && teacherData.containsKey("classes")) {
+                    Map<String, Object> classes = (Map<String, Object>) teacherData.get("classes");
+                    if (classes != null && classes.containsKey(oldClassName)) {
+                        Object classData = classes.get(oldClassName);
+                        classes.remove(oldClassName);
+                        classes.put(newClassName, classData);
+
+                        //Update Firestore with the renamed class
+                        teacherRef.update("classes", classes)
+                                .addOnSuccessListener(aVoid -> {
+                                    Log.d("ClassroomFragment", "Class renamed successfully.");
+                                    //Update the spinner with the new class name
+                                    loadClasses(newClassName); //Reload classes to update the spinner
+                                })
+                                .addOnFailureListener(e -> Log.e("ClassroomFragment", "Error renaming class.", e));
+                    }
+                }
+            }
+        }).addOnFailureListener(e -> Log.e("ClassroomFragment", "Error getting teacher document", e));
+    }
+
+    private void showDeleteClassDialog(){//dialog for deleting a the curently selected class
+        if(Online_user_id != null){
+            dbHelper.getTeacherClasses(Online_user_id, classes -> {
+                if (classes == null) {
+                    //Show dialog for no classes or error. Handles error of no classes on new new teacher logging in
+                    showNoClassesDialog();
+                    }
+                    else {
+                    AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
+                    builder.setTitle("You are about to Delete this class!");
+                    //you are about to delete this class view next next
+                    builder.setMessage("Are you sure you want to delete this class? This action cannot be undone.");
+                    builder.setPositiveButton("Delete", (dialog, which) -> {
+                        String selectedClass = classSpinner.getSelectedItem().toString();
+                        deleteClass(selectedClass);
+                    });
+                    builder.setNegativeButton("Cancel", (dialog, which) -> dialog.dismiss());
+                    builder.show();
+                    }
+
+                });
+            }
+    }
+
+    private void deleteClass(String className) {//method for deleting a the curently selected class. deletes any teams in the class as well
+        if (Online_user_id == null) {
+            Log.e("ClassroomFragment", "No online user ID found.");
+            return;
+        }
+
+        DocumentReference teacherRef = db.collection("teachers").document(Online_user_id);
+
+        teacherRef.get().addOnSuccessListener(documentSnapshot -> {
+            if (documentSnapshot.exists()) {
+                Map<String, Object> teacherData = documentSnapshot.getData();
+                if (teacherData != null && teacherData.containsKey("classes")) {
+                    Map<String, Object> classes = (Map<String, Object>) teacherData.get("classes");
+                    if (classes != null && classes.containsKey(className)) {
+                        classes.remove(className);
+
+                        Map<String, Object> updates = new HashMap<>();
+                        updates.put("classes", classes);
+                        //Delete class from class_teams
+                        updates.put("class_teams." + className, FieldValue.delete());
+
+                        teacherRef.update(updates)
+                                .addOnSuccessListener(aVoid -> {
+                                    Log.d("ClassroomFragment", "Class deleted successfully.");
+                                    classSpinner.setAdapter(null);//Clears spinner
+                                    studentList.clear();//clears student list
+                                    studentAdapter.notifyDataSetChanged();//updates student grid
+                                    loadClasses(null); //Reload class to update the spinner
+                                    loadTeamsForClass(null); //Reload teams for the deleted class as null
+
+                                })
+                                .addOnFailureListener(e -> Log.e("ClassroomFragment", "Error deleting class.", e));
+                    }
+                }
+            }
+        }).addOnFailureListener(e -> Log.e("ClassroomFragment", "Error getting teacher document", e));
+    }
+
+
 
     private void showDisbandTeamsDialog() {//for the disband team button
         if(Online_user_id != null){

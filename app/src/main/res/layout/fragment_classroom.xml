@@ -13,39 +13,70 @@
         android:layout_height="wrap_content"
         android:layout_marginStart="141dp"
         android:layout_marginEnd="142dp"
-        android:layout_marginBottom="418dp"
-        android:text="Classroom fragment"
         android:visibility="visible"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.234" />
+        app:layout_constraintTop_toTopOf="parent" />
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_marginTop="100dp"
+        android:layout_marginTop="10dp"
         android:layout_marginBottom="50dp"
         android:orientation="vertical"
         android:padding="16dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintTop_toTopOf="parent">
 
-        <!-- Class Selector (Spinner for selecting class) -->
-        <Spinner
-            android:id="@+id/class_spinner"
-            android:layout_width="match_parent"
-            android:layout_height="48dp"
-            android:paddingBottom="8dp" />
 
-        <!-- Action Bar -->
+        <LinearLayout
+            android:layout_width="380dp"
+            android:layout_height="wrap_content"
+            android:gravity="end"
+            android:orientation="horizontal"
+            android:paddingBottom="8dp">
+            <!-- Class Selector (Spinner for selecting class) -->
+            <Spinner
+                android:id="@+id/class_spinner"
+                android:layout_width="255dp"
+                android:layout_height="48dp"
+                android:layout_gravity="start"
+
+                android:paddingBottom="8dp" />
+
+            <!-- Icon for Editing class name -->
+            <ImageButton
+                android:id="@+id/edit_class_name_button"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:layout_marginEnd="12dp"
+                android:backgroundTint="#0040CD45"
+                android:contentDescription="Edit class name"
+                android:src="@drawable/baseline_edit_24" />
+
+
+            <!-- Icon for deleting class -->
+            <ImageButton
+                android:id="@+id/delete_class_button"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:backgroundTint="#0040CD45"
+                android:layout_marginEnd="18dp"
+                android:contentDescription="Delete class"
+                android:src="@drawable/baseline_folder_delete_24" />
+
+        </LinearLayout>
+
+
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:gravity="end"
-            android:orientation="horizontal">
+            android:orientation="horizontal"
+            android:layout_marginBottom="8dp"
+            >
 
             <!-- Icon for Create Class (this opens a dialog) -->
             <Button
@@ -87,7 +118,7 @@
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/student_grid"
             android:layout_width="match_parent"
-            android:layout_height="210dp"
+            android:layout_height="240dp"
             android:layout_marginBottom="8dp"
             android:layout_weight="0"
             android:background="@drawable/border"
@@ -107,44 +138,44 @@
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/teamsList"
             android:layout_width="match_parent"
-            android:scrollbars="vertical"
-            android:layout_height="160dp"
+            android:layout_height="196dp"
             android:layout_weight="0"
             android:background="@drawable/border"
-            >
+            android:scrollbars="vertical">
 
         </androidx.recyclerview.widget.RecyclerView>
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:orientation="horizontal">
-        <!-- Button to create new team -->
-        <Button
-            android:drawableLeft="@drawable/baseline_group_add_24"
-            android:id="@+id/create_team_button"
-            android:layout_width="wrap_content"
-            android:layout_height="48dp"
-            android:layout_marginEnd="8dp"
-            android:backgroundTint="#40CD45"
+            android:orientation="horizontal"
+            android:layout_marginTop="8dp"
+            >
+            <!-- Button to create new team -->
+            <Button
+                android:id="@+id/create_team_button"
+                android:layout_width="wrap_content"
+                android:layout_height="48dp"
+                android:layout_marginEnd="8dp"
+                android:backgroundTint="#40CD45"
+                android:drawableLeft="@drawable/baseline_group_add_24"
 
-            android:text="Create Team"
-             />
+                android:text="Create Team" />
             <!-- android:text="New Team"-->
 
-         <Button
-             android:id="@+id/disband_team_button"
-             android:layout_width="wrap_content"
-             android:layout_height="48dp"
-             android:backgroundTint="#CA4242"
-             android:text="Disband Team"
-             android:drawableLeft="@drawable/baseline_group_remove_24"
+            <Button
+                android:id="@+id/disband_team_button"
+                android:layout_width="wrap_content"
+                android:layout_height="48dp"
+                android:backgroundTint="#CA4242"
+                android:drawableLeft="@drawable/baseline_group_remove_24"
+                android:text="Disband Team"
 
-             />
+                />
             <!-- android:text="Disband Team"-->
-         </LinearLayout>
+        </LinearLayout>
 
-     </LinearLayout>
+    </LinearLayout>
 
 
  </androidx.constraintlayout.widget.ConstraintLayout>
