@@ -74,7 +74,8 @@ public class FS_DBHelper {
 
         FirebaseFirestore cloud_fs_db = FirebaseFirestore.getInstance();
         cloud_fs_db.collection("students")
-                .add(student)
+                .document(name)//students id's are their names
+                .set(student)
                 .addOnSuccessListener(documentReference -> {
                     //Successfully added student
                 })

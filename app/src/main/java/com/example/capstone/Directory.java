@@ -1,13 +1,21 @@
 package com.example.capstone;
 
+import static com.example.capstone.FS_DBHelper.Online_user_id;
+import static com.example.capstone.FS_DBHelper.Teacher_online;
+
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.fragment.app.Fragment;
 import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
+
 import com.example.capstone.databinding.DirectoryPageBinding;
 
 import com.google.android.material.bottomnavigation.BottomNavigationView;
+import com.google.firebase.firestore.DocumentReference;
+import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.firestore.FirebaseFirestore;
 
 public class Directory extends AppCompatActivity {
 
@@ -18,7 +26,8 @@ public class Directory extends AppCompatActivity {
     private GamesFragment gamesFragment;
 
     private LeaderBoardFragment leaderBoardFragment;
-    private ClassroomFragment classroomFragment;
+    private ClassroomFragment teacher_classroomFragment;
+    private StudentClassroomFragment student_classroomFragment;
 
 
 
@@ -36,8 +45,15 @@ public class Directory extends AppCompatActivity {
         //Initializes fragments
         profileFragment = new ProfileFragment();
         gamesFragment = new GamesFragment();
-        classroomFragment = new ClassroomFragment();
         leaderBoardFragment = new LeaderBoardFragment();
+
+            if (Teacher_online==true) {
+
+                teacher_classroomFragment = new ClassroomFragment();
+            }
+            else{
+                student_classroomFragment = new StudentClassroomFragment();
+            }
 
         //loads the default fragment profileFragment
         loadFragment(profileFragment);
@@ -58,8 +74,15 @@ public class Directory extends AppCompatActivity {
                 loadFragment(leaderBoardFragment);
                 return true;
             } else if (itemId == R.id.nav_classroom) {
-                loadFragment(classroomFragment);
-                return true;
+                if (Teacher_online==true) {
+                    loadFragment(teacher_classroomFragment);
+                    return true;
+                }
+                else{
+                    loadFragment(student_classroomFragment);
+                    return true;
+                }
+
             }
 
             return false;

@@ -30,9 +30,12 @@ import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 public class ClassroomFragment extends Fragment {
@@ -164,7 +167,10 @@ public class ClassroomFragment extends Fragment {
                 if (classes == null) {
                     //Show dialog for no classes or error
                     showNoClassesDialog();
-                } else {
+                }
+
+
+                else {
                     classList.clear();//Clear the list
                     classList.addAll(classes); //Populates class list with data from FS_DBHelper
 
@@ -322,7 +328,18 @@ public class ClassroomFragment extends Fragment {
                     builder.setPositiveButton(android.R.string.ok, (dialog, which) -> {
                         dialog.dismiss();
                         String newClassName = input.getText().toString().trim();
-                        if (!newClassName.isEmpty()) {
+                        if (!newClassName.isEmpty() ) {
+
+                            //Firebase dose not allow map names to have any of these characters
+                            Set<Character> invalidChars = new HashSet<>(Arrays.asList('.', '/', '*', '[', ']', '~', '#', '\0'));
+                            for (char c : newClassName.toCharArray()) {//Check for invalid characters
+                                if (invalidChars.contains(c)) {
+                                    Log.d("ClassroomFragment", "Invalid characters in new class name.");
+                                    Toast.makeText(getContext(), "Class name cannot contain: . / * [ ] ~ # \\0", Toast.LENGTH_LONG).show();
+                                    return;
+                                }
+                            }
+
                             String oldClassName = classSpinner.getSelectedItem().toString();
                             renameClass(oldClassName, newClassName);
                         }
@@ -330,41 +347,68 @@ public class ClassroomFragment extends Fragment {
                     builder.setNegativeButton(android.R.string.cancel, (dialog, which) -> dialog.cancel());
 
                     builder.show();
-
                 }
-
-
             });
         }
-
     }
 
-    private void renameClass(String oldClassName, String newClassName) {//method for renaming a class
+    private void renameClass(String oldClassName, String newClassName) {
         if (Online_user_id == null) {
             Log.e("ClassroomFragment", "No online user ID found.");
             return;
         }
 
-        DocumentReference teacherRef = db.collection("teachers").document(Online_user_id);
+        if (oldClassName.equals(newClassName)) {
+            Log.d("ClassroomFragment", "Class name is the same, no need to rename.");
+            return; //No need to rename if the names are the same
+        }
+
+        DocumentReference teacherRef = db.collection("teachers").document(Online_user_id);//get teacher in system
 
         teacherRef.get().addOnSuccessListener(documentSnapshot -> {
             if (documentSnapshot.exists()) {
-                Map<String, Object> teacherData = documentSnapshot.getData();
-                if (teacherData != null && teacherData.containsKey("classes")) {
-                    Map<String, Object> classes = (Map<String, Object>) teacherData.get("classes");
-                    if (classes != null && classes.containsKey(oldClassName)) {
-                        Object classData = classes.get(oldClassName);
-                        classes.remove(oldClassName);
-                        classes.put(newClassName, classData);
+                Map<String, Object> teacherData = documentSnapshot.getData();//snapShot of the teachers data
+                if (teacherData != null) {
 
-                        //Update Firestore with the renamed class
-                        teacherRef.update("classes", classes)
+                    if (teacherData.containsKey("class_teams")) {//Check if class_teams exists
+                        Map<String, Object> classTeams = (Map<String, Object>) teacherData.get("class_teams");
+                        if (classTeams != null && classTeams.containsKey(newClassName)) {//Check if the new class name already exists in class_teams
+                            Log.d("ClassroomFragment", "A class_team with the new name already exists.");
+                            Toast.makeText(getContext(), "A Classroom with name '" + newClassName + "' already exists.", Toast.LENGTH_LONG).show();
+                            return; //A class_team with the new name already exists
+                        }
+                    }
+
+                    Map<String, Object> updates = new HashMap<>();//Map for updates
+
+                    //Rename class in "classes" field
+                    if (teacherData.containsKey("classes")) {
+                        Map<String, Object> classes = (Map<String, Object>) teacherData.get("classes");
+                        if (classes != null && classes.containsKey(oldClassName)) {
+                            Object classData = classes.get(oldClassName);
+                            classes.remove(oldClassName);
+                            classes.put(newClassName, classData);
+                            updates.put("classes", classes);
+                        }
+                    }
+
+                    //Rename teams in "class_teams" field
+                    if (teacherData.containsKey("class_teams")) {
+                        Map<String, Object> classTeams = (Map<String, Object>) teacherData.get("class_teams");
+                        if (classTeams != null && classTeams.containsKey(oldClassName)) {
+                            updates.put("class_teams." + newClassName, classTeams.get(oldClassName));
+                            updates.put("class_teams." + oldClassName, FieldValue.delete());
+                        }
+                    }
+
+                    //Update Firestore Database
+                    if (!updates.isEmpty()) {
+                        teacherRef.update(updates)
                                 .addOnSuccessListener(aVoid -> {
-                                    Log.d("ClassroomFragment", "Class renamed successfully.");
-                                    //Update the spinner with the new class name
-                                    loadClasses(newClassName); //Reload classes to update the spinner
+                                    Log.d("ClassroomFragment", "Class and teams updated successfully.");
+                                    loadClasses(newClassName);
                                 })
-                                .addOnFailureListener(e -> Log.e("ClassroomFragment", "Error renaming class.", e));
+                                .addOnFailureListener(e -> Log.e("ClassroomFragment", "Error updating class and teams.", e));
                     }
                 }
             }
@@ -753,6 +797,17 @@ public class ClassroomFragment extends Fragment {
             return;
         }
 
+        //Firebase dose not allow map names to have any of these characters
+        Set<Character> invalidChars = new HashSet<>(Arrays.asList('.', '/', '*', '[', ']', '~', '#', '\0'));
+
+        for (char c : className.toCharArray()) {//check for invalid characters
+            if (invalidChars.contains(c)) {
+                Log.d("ClassroomFragment", "Invalid characters in class name.");
+                Toast.makeText(getContext(), "Class name cannot contain: . / * [ ] ~ # \\0", Toast.LENGTH_LONG).show();
+                return;
+            }
+        }
+
         //Get the existing classes for the teacher
         //Searches teacher document -> classes
         db.collection("teachers")
@@ -815,19 +870,6 @@ public class ClassroomFragment extends Fragment {
                 })
                 .addOnFailureListener(e -> Log.e("ClassroomFragment", "Error fetching teacher's classes.", e));
     }
-/*
-    private void updateTeacherClasses(Map<String, ArrayList<String>> currentClasses, String className) {
-        db.collection("teachers")
-                .document(Online_user_id)
-                .update("classes", currentClasses)
-                .addOnSuccessListener(aVoid -> {
-                    Log.d("ClassroomFragment", "Classroom successfully created.");
-                    loadClasses(className);  // Refresh the spinner
-                })
-                .addOnFailureListener(e -> Log.e("ClassroomFragment", "Error updating classroom.", e));
-    }
-
- */
 
 
     private void showAddStudentDialog() {//for the add student button
@@ -852,49 +894,93 @@ public class ClassroomFragment extends Fragment {
                     StudentSelectionAdapter selectionAdapter = new StudentSelectionAdapter(studentList); // Assuming you have this adapter with checkboxes
                     studentSelectionList.setAdapter(selectionAdapter);
 
-                        //Fetch students from Firestore whose 'teachers' array contains the current teacher's name
+                    //Fetch students from Firestore whose 'teachers' array contains the current teacher's name
                     db.collection("students")
-                        .whereEqualTo("teacher",Online_user_id.toString()) // Fetch only students with this teacher
-                        .get()
-                        .addOnCompleteListener(task -> {
-                    if (task.isSuccessful()) {
-                        studentList.clear();
-                        for (QueryDocumentSnapshot document : task.getResult()) {
-                            Student student = document.toObject(Student.class);
-                            studentList.add(student); //Add to the list
-                        }
-                        selectionAdapter.notifyDataSetChanged(); //Refresh RecyclerView
-                            }
-                        });
+                            .whereEqualTo("teacher",Online_user_id.toString()) //Fetch only students with this teacher
+                            .get()
+                            .addOnCompleteListener(task_check_students_teach -> {
 
-                            builder.setPositiveButton("Add", (dialog, id) -> {
-                            List<Student> selectedStudents = selectionAdapter.getSelectedStudents(); // Get selected students
-                            if (!selectedStudents.isEmpty()) {
-                            String selectedClass = classSpinner.getSelectedItem().toString(); // Get selected class
-                            addStudentsToClass(selectedClass, selectedStudents); //Add students to the class
+                                //teachers -> classes -> class(array) -> students
+                                //check if students are already in a class
+
+
+                                if (task_check_students_teach.isSuccessful()) {
+                                    studentList.clear();
+                                    for (QueryDocumentSnapshot document : task_check_students_teach.getResult()) {
+                                        Student student = document.toObject(Student.class);
+                                        studentList.add(student); //Add to the list
+                                    }
+                                    selectionAdapter.notifyDataSetChanged(); //Refresh RecyclerView
                                 }
-                });
+                                else{
+                                    Toast.makeText(getContext(), "This student is already in a class you have.", Toast.LENGTH_SHORT).show();
+                                }
+                            });
 
-                builder.setNegativeButton("Cancel", (dialog, id) -> dialog.dismiss());
-                builder.create().show();
+                    builder.setPositiveButton("Add", (dialog, id) -> {
+                        List<Student> selectedStudents = selectionAdapter.getSelectedStudents(); //Get selected students
+                        if (!selectedStudents.isEmpty()) {
+                            String selectedClass = classSpinner.getSelectedItem().toString();
+
+                            //Get teacher's classes
+                            db.collection("teachers")
+                                    .document(Online_user_id)
+                                    .get()
+                                    .addOnSuccessListener(teacherDoc -> {
+                                        if (teacherDoc.exists()) {
+                                            Map<String, Object> teacherData = teacherDoc.getData();
+                                            if (teacherData != null && teacherData.containsKey("classes")) {
+                                                Map<String, ArrayList<String>> teacherClasses = (Map<String, ArrayList<String>>) teacherData.get("classes"); //Renamed to teacherClasses
+
+                                                boolean studentExists = false;
+                                                for (Student student : selectedStudents) {//for each selected student check if they are already in a class
+                                                    if (isStudentInClasses(student.getName(), teacherClasses)) {
+                                                        studentExists = true;
+                                                        break;
+                                                    }
+                                                }
+
+                                                if (studentExists) {//student is already in a class
+                                                    Toast.makeText(getContext(), "One or more students are already in a class.", Toast.LENGTH_SHORT).show();
+                                                } else {
+                                                    addStudentsToClass(selectedClass, selectedStudents);
+                                                }
+                                            }
+                                        }
+                                    });
+                        }
+                    });
+
+                    builder.setNegativeButton("Cancel", (dialog, id) -> dialog.dismiss());
+                    builder.create().show();
 
                 }
             });
         }
         else {
-        Toast.makeText(getContext(), "No online user ID found.", Toast.LENGTH_SHORT).show();
+            Toast.makeText(getContext(), "No online user ID found.", Toast.LENGTH_SHORT).show();
         }
     }
 
-    private void showRemoveStudentDialog() {
+    private boolean isStudentInClasses(String studentName, Map<String, ArrayList<String>> classes) {//checks for if a student is in a array of classes
+        for (ArrayList<String> classStudents : classes.values()) {//Iterate through each class's students
+            if (classStudents.contains(studentName)) {//Check if the student is in the class
+                return true;
+            }
+        }
+        return false;
+    }
+
+
+    private void showRemoveStudentDialog() {//dialog for removing a student from a class
 
         if (Online_user_id != null) {
             dbHelper.getTeacherClasses(Online_user_id, classes -> {
                 if (classes == null) {
-                    // Show dialog for no classes or error
+                    //Show dialog for no classes or error
                     showNoClassesDialog();
                 } else {
-                    // Create a dialog to display the students in the current class
+                    //Create a dialog to display the students in the current class
                     AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
                     LayoutInflater inflater = getLayoutInflater();
                     View dialogView = inflater.inflate(R.layout.dialog_remove_students, null);
@@ -903,11 +989,11 @@ public class ClassroomFragment extends Fragment {
                     Spinner student_remove_Spinner = dialogView.findViewById(R.id.student_spinner_remove);
                     //RecyclerView studentSelectionList = dialogView.findViewById(R.id.student_selection_list_remove);
                     List<Student> studentList = new ArrayList<>();
-                    List<String> studentNamesList = new ArrayList<>(); // To hold student names for the Spinner
+                    List<String> studentNamesList = new ArrayList<>(); //To hold student names for the Spinner
 
-                    String teacherClass = classSpinner.getSelectedItem().toString(); // Get selected class
+                    String teacherClass = classSpinner.getSelectedItem().toString(); //Get selected class
 
-                    // Fetch students for the selected class
+                    //Fetch students for the selected class
                     db.collection("teachers")
                             .document(Online_user_id)
                             .get()
@@ -916,9 +1002,9 @@ public class ClassroomFragment extends Fragment {
                                     Map<String, List<String>> mapclasses = (Map<String, List<String>>) documentSnapshot.get("classes");
                                     if (mapclasses != null && mapclasses.containsKey(teacherClass)) {
                                         List<String> studentNames = mapclasses.get(teacherClass);
-                                        // Fetch Student objects from Firestore based on the student names
+                                        //Fetch Student objects from Firestore based on the student names
                                         db.collection("students")
-                                                .whereIn("name", studentNames) // Query for students by names
+                                                .whereIn("name", studentNames) //Query for students by names
                                                 .get()
                                                 .addOnCompleteListener(task -> {
                                                     if (task.isSuccessful()) {
@@ -929,7 +1015,7 @@ public class ClassroomFragment extends Fragment {
                                                             studentList.add(student);
                                                             studentNamesList.add(student.getName());
                                                         }
-                                                        // Set up the Spinner with student names
+                                                        //Set up the Spinner with student names
                                                         ArrayAdapter<String> adapter = new ArrayAdapter<>(getContext(), android.R.layout.simple_spinner_item, studentNamesList);
                                                         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
                                                         student_remove_Spinner.setAdapter(adapter);
@@ -1051,11 +1137,6 @@ public class ClassroomFragment extends Fragment {
                 .addOnFailureListener(e -> Log.e("ClassroomFragment", "Error fetching teacher's data.", e));
     }
 
-
-
-
-
-
     private void showNoClassesDialog() {//prevents error if no classes exist for teacher
         new AlertDialog.Builder(getActivity()) //Use 'this' if in Activity; replace with 'getActivity()' in Fragment
                 .setTitle("No Classes")
@@ -1064,14 +1145,5 @@ public class ClassroomFragment extends Fragment {
                 .show();
     }
 
-    /*
-    private void showErrorDialog() {
-        new AlertDialog.Builder(getActivity()) // Use 'this' if in Activity; replace with 'getActivity()' in Fragment
-                .setTitle("Error")
-                .setMessage("An error occurred while fetching classes.")
-                .setPositiveButton(android.R.string.ok, null)
-                .show();
-    }
 
-     */
 }

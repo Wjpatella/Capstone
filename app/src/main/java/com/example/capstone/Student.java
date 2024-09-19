@@ -31,7 +31,9 @@ public class Student {//Student model
         this.name = name;
     }
 
-    /*
+
+
+
     public void setPassword(String password){
         this.password = password;
     }
@@ -59,7 +61,7 @@ public class Student {//Student model
     public String getActiveGame() {
         return activeGame;
     }
-*/
+
 
 
 

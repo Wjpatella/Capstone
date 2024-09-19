@@ -47,6 +47,11 @@ public class TeamAdapter extends RecyclerView.Adapter<TeamAdapter.TeamViewHolder
     public int getItemCount() {
         return teams.size();
     }
+    public void updateTeams(List<Team> newTeams) {
+        this.teams.clear(); //Clear the old list
+        this.teams.addAll(newTeams); //Add the new teams
+        notifyDataSetChanged(); //Notify the adapter that the data has changed
+    }
 
     static class TeamViewHolder extends RecyclerView.ViewHolder {
         TextView teamNameTextView;
