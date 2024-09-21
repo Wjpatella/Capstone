@@ -29,6 +29,9 @@
             android:exported="true" />
         <activity android:name=".Directory"
             android:exported="true" />
+        <activity android:name=".DrawlingGameActivity"
+            android:exported="true"
+            />
     </application>
 
 </manifest>

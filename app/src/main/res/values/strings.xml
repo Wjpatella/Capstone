@@ -3,4 +3,22 @@
     <string name="register_or_login">Register or Login</string>
     <string name="login">Login</string>
     <string name="register">Register</string>
+
+    <string-array name="timer_options">
+        <item>30</item>
+        <item>60</item>
+        <item>90</item>
+        <item>120</item>
+    </string-array>
+
+    <string-array name="mode_options">
+        <item>Normal Classroom mode</item>
+        <item>Team Classroom mode</item>
+    </string-array>
+
+    <string-array name="topic_options">
+        <item>Animals</item>
+        <item>Verbs</item>
+    </string-array>
+
 </resources>

@@ -70,7 +70,7 @@ public class StudentClassroomFragment extends Fragment {
         return view;
     }
 
-    private void loadClassroomData() {//fix
+    private void loadClassroomData() {
         if (Online_user_id != null) {
             db.collection("students").document(Online_user_id)
                     .get()

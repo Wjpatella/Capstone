@@ -1,9 +1,9 @@
 package com.example.capstone;
 
 import static com.example.capstone.FS_DBHelper.Online_user_id;
+import static com.example.capstone.TeacherGameFragment.GameActive;
 
 import android.app.AlertDialog;
-import android.opengl.Visibility;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -36,7 +36,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 public class ClassroomFragment extends Fragment {
 
@@ -82,7 +81,7 @@ public class ClassroomFragment extends Fragment {
         teamsListGird = view.findViewById(R.id.teamsList);
         createClassroomButton = view.findViewById(R.id.create_classroom_button);
         createTeamButton = view.findViewById(R.id.create_team_button);
-        disbandTeamButton= view.findViewById(R.id.disband_team_button);
+        disbandTeamButton = view.findViewById(R.id.disband_team_button);
         addStudentButton = view.findViewById(R.id.student_add_button);
         removeStudentButton = view.findViewById(R.id.student_remove_button);
         editClassNameButton = view.findViewById(R.id.edit_class_name_button);
@@ -134,7 +133,9 @@ public class ClassroomFragment extends Fragment {
         addStudentButton.setOnClickListener(v -> showAddStudentDialog());
 
         //initialize dialog for removing students on remove student button click
-        removeStudentButton.setOnClickListener(v -> { showRemoveStudentDialog(); });
+        removeStudentButton.setOnClickListener(v -> {
+            showRemoveStudentDialog();
+        });
 
         //initialize dialog for creating a new team on create team button click
         createTeamButton.setOnClickListener(v -> showCreateTeamDialog());
@@ -167,10 +168,7 @@ public class ClassroomFragment extends Fragment {
                 if (classes == null) {
                     //Show dialog for no classes or error
                     showNoClassesDialog();
-                }
-
-
-                else {
+                } else {
                     classList.clear();//Clear the list
                     classList.addAll(classes); //Populates class list with data from FS_DBHelper
 
@@ -242,62 +240,63 @@ public class ClassroomFragment extends Fragment {
     }
 
     private void showCreateTeamDialog() {//for the create team button
+        if (GameActive != true) {
+            if (Online_user_id != null) {//check if user is logged in
+                dbHelper.getTeacherClasses(Online_user_id, classes -> {
+                    if (classes == null) {
+                        //Show dialog for no classes or error. Handles error of no classes on new new teacher logging in
+                        showNoClassesDialog();
+                    } else {//Create a dialog to input the new team name
+                        AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
+                        LayoutInflater inflater = getLayoutInflater();
+                        View dialogView = inflater.inflate(R.layout.dialog_create_team, null);
+                        builder.setView(dialogView);
 
-        if(Online_user_id != null){//check if user is logged in
-            dbHelper.getTeacherClasses(Online_user_id, classes -> {
-                if (classes == null) {
-                    //Show dialog for no classes or error. Handles error of no classes on new new teacher logging in
-                    showNoClassesDialog();
-                }
-                else {//Create a dialog to input the new team name
-                    AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
-                    LayoutInflater inflater = getLayoutInflater();
-                    View dialogView = inflater.inflate(R.layout.dialog_create_team, null);
-                    builder.setView(dialogView);
+                        //layout for dialog
+                        EditText teamNameInput = dialogView.findViewById(R.id.team_name_input);
+                        RecyclerView teamStudentSelectionList = dialogView.findViewById(R.id.team_student_selection_list);
+                        teamStudentSelectionList.setLayoutManager(new GridLayoutManager(getContext(), 3)); // Adjust column count
 
-                    //layout for dialog
-                    EditText teamNameInput = dialogView.findViewById(R.id.team_name_input);
-                    RecyclerView teamStudentSelectionList = dialogView.findViewById(R.id.team_student_selection_list);
-                    teamStudentSelectionList.setLayoutManager(new GridLayoutManager(getContext(), 3)); // Adjust column count
+                        List<Student> studentList_Teams = new ArrayList<>();
+                        StudentSelectionAdapter teamSelectionAdapter = new StudentSelectionAdapter(studentList_Teams);
+                        teamStudentSelectionList.setAdapter(teamSelectionAdapter);
 
-                    List<Student> studentList_Teams = new ArrayList<>();
-                    StudentSelectionAdapter teamSelectionAdapter = new StudentSelectionAdapter(studentList_Teams);
-                    teamStudentSelectionList.setAdapter(teamSelectionAdapter);
+                        //Fetch students for the selected class and populate the RecyclerView
+                        fetchStudentsForSelectedClass(studentList_Teams, teamSelectionAdapter);
 
-                    //Fetch students for the selected class and populate the RecyclerView
-                    fetchStudentsForSelectedClass(studentList_Teams, teamSelectionAdapter);
+                        builder.setPositiveButton("Create", (dialog, id) -> {
+                            String newTeamName = teamNameInput.getText().toString();//Get the team name from the input
+                            if (newTeamName.isEmpty()) {//ensure team name is not empty
+                                Toast.makeText(getContext(), "Please enter a team name.", Toast.LENGTH_SHORT).show();
+                            } else {
+                                List<Student> selectedStudentsForTeam = teamSelectionAdapter.getSelectedStudents(); //Get the List<Student> directly
 
-                    builder.setPositiveButton("Create", (dialog, id) -> {
-                        String newTeamName = teamNameInput.getText().toString();//Get the team name from the input
-                        if (newTeamName.isEmpty()) {//ensure team name is not empty
-                            Toast.makeText(getContext(), "Please enter a team name.", Toast.LENGTH_SHORT).show();
-                        }
-                        else {
-                            List<Student> selectedStudentsForTeam = teamSelectionAdapter.getSelectedStudents(); //Get the List<Student> directly
-
-                            //Check if any selected students are already in another team
-                            for (Student student : selectedStudentsForTeam) {
-                                if (studentTeamMap.containsKey(student.getName())) {
-                                    String currentTeam = studentTeamMap.get(student.getName());
-                                    Toast.makeText(getContext(), student.getName() + " is already in team " + currentTeam, Toast.LENGTH_LONG).show();
-                                    return; //Prevent team creation
+                                //Check if any selected students are already in another team
+                                for (Student student : selectedStudentsForTeam) {
+                                    if (studentTeamMap.containsKey(student.getName())) {
+                                        String currentTeam = studentTeamMap.get(student.getName());
+                                        Toast.makeText(getContext(), student.getName() + " is already in team " + currentTeam, Toast.LENGTH_LONG).show();
+                                        return; //Prevent team creation
+                                    }
                                 }
+
+                                createNewTeam(Online_user_id.toString(), newTeamName, selectedStudentsForTeam);//calls FS_DBHelper method for creation of new team
                             }
+                        });
 
-                            createNewTeam(Online_user_id.toString(),newTeamName, selectedStudentsForTeam);//calls FS_DBHelper method for creation of new team
-                        }
-                    });
+                        builder.setNegativeButton("Cancel", (dialog, id) -> dialog.dismiss());
+                        builder.create().show();
 
-                    builder.setNegativeButton("Cancel", (dialog, id) -> dialog.dismiss());
-                    builder.create().show();
+                    }
 
-                }
-
-            });
+                });
+            } else {
+                Toast.makeText(getContext(), "No online user ID found.", Toast.LENGTH_SHORT).show();
+            }
+        } else {
+            showCantUseWhileGameActiveDialog();
         }
-        else {
-           Toast.makeText(getContext(), "No online user ID found.", Toast.LENGTH_SHORT).show();
-        }
+
 
     }
 
@@ -311,132 +310,146 @@ public class ClassroomFragment extends Fragment {
     }
 
     private void showEditClassNameDialog() {//dialog for editing a the curently selected class
-        if(Online_user_id != null){
-            dbHelper.getTeacherClasses(Online_user_id, classes -> {
-                if (classes == null) {
-                    //Show dialog for no classes or error. Handles error of no classes on new new teacher logging in
-                    showNoClassesDialog();
-                }
-                else {
-                    AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
-                    builder.setTitle("Edit Class Name");
+        if (GameActive != true) {
+            if (Online_user_id != null) {
 
-                    View viewInflated = LayoutInflater.from(getContext()).inflate(R.layout.dialog_edit_class, (ViewGroup) getView(), false);
-                    final EditText input = viewInflated.findViewById(R.id.input_new_class_name);
-                    builder.setView(viewInflated);
 
-                    builder.setPositiveButton(android.R.string.ok, (dialog, which) -> {
-                        dialog.dismiss();
-                        String newClassName = input.getText().toString().trim();
-                        if (!newClassName.isEmpty() ) {
+                dbHelper.getTeacherClasses(Online_user_id, classes -> {
+                    if (classes == null) {
+                        //Show dialog for no classes or error. Handles error of no classes on new new teacher logging in
+                        showNoClassesDialog();
+                    } else if (GameActive == true) {
+                        showCantUseWhileGameActiveDialog();
+                    } else {
+                        AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
+                        builder.setTitle("Edit Class Name");
 
-                            //Firebase dose not allow map names to have any of these characters
-                            Set<Character> invalidChars = new HashSet<>(Arrays.asList('.', '/', '*', '[', ']', '~', '#', '\0'));
-                            for (char c : newClassName.toCharArray()) {//Check for invalid characters
-                                if (invalidChars.contains(c)) {
-                                    Log.d("ClassroomFragment", "Invalid characters in new class name.");
-                                    Toast.makeText(getContext(), "Class name cannot contain: . / * [ ] ~ # \\0", Toast.LENGTH_LONG).show();
-                                    return;
+                        View viewInflated = LayoutInflater.from(getContext()).inflate(R.layout.dialog_edit_class, (ViewGroup) getView(), false);
+                        final EditText input = viewInflated.findViewById(R.id.input_new_class_name);
+                        builder.setView(viewInflated);
+
+                        builder.setPositiveButton(android.R.string.ok, (dialog, which) -> {
+                            dialog.dismiss();
+                            String newClassName = input.getText().toString().trim();
+                            if (!newClassName.isEmpty()) {
+
+                                //Firebase dose not allow map names to have any of these characters
+                                Set<Character> invalidChars = new HashSet<>(Arrays.asList('.', '/', '*', '[', ']', '~', '#', '\0'));
+                                for (char c : newClassName.toCharArray()) {//Check for invalid characters
+                                    if (invalidChars.contains(c)) {
+                                        Log.d("ClassroomFragment", "Invalid characters in new class name.");
+                                        Toast.makeText(getContext(), "Class name cannot contain: . / * [ ] ~ # \\0", Toast.LENGTH_LONG).show();
+                                        return;
+                                    }
                                 }
+
+                                String oldClassName = classSpinner.getSelectedItem().toString();
+                                renameClass(oldClassName, newClassName);
                             }
+                        });
+                        builder.setNegativeButton(android.R.string.cancel, (dialog, which) -> dialog.cancel());
 
-                            String oldClassName = classSpinner.getSelectedItem().toString();
-                            renameClass(oldClassName, newClassName);
-                        }
-                    });
-                    builder.setNegativeButton(android.R.string.cancel, (dialog, which) -> dialog.cancel());
-
-                    builder.show();
-                }
-            });
+                        builder.show();
+                    }
+                });
+            }
+        } else {
+            showCantUseWhileGameActiveDialog();
         }
+
     }
 
     private void renameClass(String oldClassName, String newClassName) {
-        if (Online_user_id == null) {
-            Log.e("ClassroomFragment", "No online user ID found.");
-            return;
-        }
+        if (Online_user_id != null) {
 
-        if (oldClassName.equals(newClassName)) {
-            Log.d("ClassroomFragment", "Class name is the same, no need to rename.");
-            return; //No need to rename if the names are the same
-        }
+            if (oldClassName.equals(newClassName)) {
+                Log.d("ClassroomFragment", "Class name is the same, no need to rename.");
+                return; //No need to rename if the names are the same
+            }
 
-        DocumentReference teacherRef = db.collection("teachers").document(Online_user_id);//get teacher in system
+            DocumentReference teacherRef = db.collection("teachers").document(Online_user_id);//get teacher in system
 
-        teacherRef.get().addOnSuccessListener(documentSnapshot -> {
-            if (documentSnapshot.exists()) {
-                Map<String, Object> teacherData = documentSnapshot.getData();//snapShot of the teachers data
-                if (teacherData != null) {
+            teacherRef.get().addOnSuccessListener(documentSnapshot -> {
+                if (documentSnapshot.exists()) {
+                    Map<String, Object> teacherData = documentSnapshot.getData();//snapShot of the teachers data
+                    if (teacherData != null) {
 
-                    if (teacherData.containsKey("class_teams")) {//Check if class_teams exists
-                        Map<String, Object> classTeams = (Map<String, Object>) teacherData.get("class_teams");
-                        if (classTeams != null && classTeams.containsKey(newClassName)) {//Check if the new class name already exists in class_teams
-                            Log.d("ClassroomFragment", "A class_team with the new name already exists.");
-                            Toast.makeText(getContext(), "A Classroom with name '" + newClassName + "' already exists.", Toast.LENGTH_LONG).show();
-                            return; //A class_team with the new name already exists
+                        if (teacherData.containsKey("class_teams")) {//Check if class_teams exists
+                            Map<String, Object> classTeams = (Map<String, Object>) teacherData.get("class_teams");
+                            if (classTeams != null && classTeams.containsKey(newClassName)) {//Check if the new class name already exists in class_teams
+                                Log.d("ClassroomFragment", "A class_team with the new name already exists.");
+                                Toast.makeText(getContext(), "A Classroom with name '" + newClassName + "' already exists.", Toast.LENGTH_LONG).show();
+                                return; //A class_team with the new name already exists
+                            }
                         }
-                    }
 
-                    Map<String, Object> updates = new HashMap<>();//Map for updates
+                        Map<String, Object> updates = new HashMap<>();//Map for updates
 
-                    //Rename class in "classes" field
-                    if (teacherData.containsKey("classes")) {
-                        Map<String, Object> classes = (Map<String, Object>) teacherData.get("classes");
-                        if (classes != null && classes.containsKey(oldClassName)) {
-                            Object classData = classes.get(oldClassName);
-                            classes.remove(oldClassName);
-                            classes.put(newClassName, classData);
-                            updates.put("classes", classes);
+                        //Rename class in "classes" field
+                        if (teacherData.containsKey("classes")) {
+                            Map<String, Object> classes = (Map<String, Object>) teacherData.get("classes");
+                            if (classes != null && classes.containsKey(oldClassName)) {
+                                Object classData = classes.get(oldClassName);
+                                classes.remove(oldClassName);
+                                classes.put(newClassName, classData);
+                                updates.put("classes", classes);
+                            }
                         }
-                    }
 
-                    //Rename teams in "class_teams" field
-                    if (teacherData.containsKey("class_teams")) {
-                        Map<String, Object> classTeams = (Map<String, Object>) teacherData.get("class_teams");
-                        if (classTeams != null && classTeams.containsKey(oldClassName)) {
-                            updates.put("class_teams." + newClassName, classTeams.get(oldClassName));
-                            updates.put("class_teams." + oldClassName, FieldValue.delete());
+                        //Rename teams in "class_teams" field
+                        if (teacherData.containsKey("class_teams")) {
+                            Map<String, Object> classTeams = (Map<String, Object>) teacherData.get("class_teams");
+                            if (classTeams != null && classTeams.containsKey(oldClassName)) {
+                                updates.put("class_teams." + newClassName, classTeams.get(oldClassName));
+                                updates.put("class_teams." + oldClassName, FieldValue.delete());
+                            }
                         }
-                    }
 
-                    //Update Firestore Database
-                    if (!updates.isEmpty()) {
-                        teacherRef.update(updates)
-                                .addOnSuccessListener(aVoid -> {
-                                    Log.d("ClassroomFragment", "Class and teams updated successfully.");
-                                    loadClasses(newClassName);
-                                })
-                                .addOnFailureListener(e -> Log.e("ClassroomFragment", "Error updating class and teams.", e));
+                        //Update Firestore Database
+                        if (!updates.isEmpty()) {
+                            teacherRef.update(updates)
+                                    .addOnSuccessListener(aVoid -> {
+                                        Log.d("ClassroomFragment", "Class and teams updated successfully.");
+                                        loadClasses(newClassName);
+                                    })
+                                    .addOnFailureListener(e -> Log.e("ClassroomFragment", "Error updating class and teams.", e));
+                        }
                     }
                 }
-            }
-        }).addOnFailureListener(e -> Log.e("ClassroomFragment", "Error getting teacher document", e));
+            }).addOnFailureListener(e -> Log.e("ClassroomFragment", "Error getting teacher document", e));
+        } else {
+            Log.e("ClassroomFragment", "No online user ID found.");
+
+        }
+
     }
 
-    private void showDeleteClassDialog(){//dialog for deleting a the curently selected class
-        if(Online_user_id != null){
-            dbHelper.getTeacherClasses(Online_user_id, classes -> {
-                if (classes == null) {
-                    //Show dialog for no classes or error. Handles error of no classes on new new teacher logging in
-                    showNoClassesDialog();
-                    }
-                    else {
-                    AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
-                    builder.setTitle("You are about to Delete this class!");
-                    //you are about to delete this class view next next
-                    builder.setMessage("Are you sure you want to delete this class? This action cannot be undone.");
-                    builder.setPositiveButton("Delete", (dialog, which) -> {
-                        String selectedClass = classSpinner.getSelectedItem().toString();
-                        deleteClass(selectedClass);
-                    });
-                    builder.setNegativeButton("Cancel", (dialog, which) -> dialog.dismiss());
-                    builder.show();
+    private void showDeleteClassDialog() {//dialog for deleting a the curently selected class
+        if (GameActive != true) {
+            if (Online_user_id != null) {
+                dbHelper.getTeacherClasses(Online_user_id, classes -> {
+                    if (classes == null) {
+                        //Show dialog for no classes or error. Handles error of no classes on new new teacher logging in
+                        showNoClassesDialog();
+                    } else {
+                        AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
+                        builder.setTitle("You are about to Delete this class!");
+                        //you are about to delete this class view next next
+                        builder.setMessage("Are you sure you want to delete this class? This action cannot be undone.");
+                        builder.setPositiveButton("Delete", (dialog, which) -> {
+                            String selectedClass = classSpinner.getSelectedItem().toString();
+                            deleteClass(selectedClass);
+                        });
+                        builder.setNegativeButton("Cancel", (dialog, which) -> dialog.dismiss());
+                        builder.show();
                     }
 
                 });
             }
+        }
+        else{
+            showCantUseWhileGameActiveDialog();
+        }
     }
 
     private void deleteClass(String className) {//method for deleting a the curently selected class. deletes any teams in the class as well
@@ -475,97 +488,100 @@ public class ClassroomFragment extends Fragment {
                 }
             }
         }).addOnFailureListener(e -> Log.e("ClassroomFragment", "Error getting teacher document", e));
+
     }
 
 
-
     private void showDisbandTeamsDialog() {//for the disband team button
-        if(Online_user_id != null){
-            dbHelper.getTeacherClasses(Online_user_id, classes -> {
-                if (classes == null) {
-                    //Show dialog for no classes or error. Handles error of no classes on new new teacher logging in
-                    showNoClassesDialog();
-                }
-                else {
+        if (GameActive != true) {
+            if (Online_user_id != null) {
+                dbHelper.getTeacherClasses(Online_user_id, classes -> {
+                    if (classes == null) {
+                        //Show dialog for no classes or error. Handles error of no classes on new new teacher logging in
+                        showNoClassesDialog();
+                    } else {
 
-                    //layout for dialog
-                    AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
-                    LayoutInflater inflater = getLayoutInflater();
-                    View dialogView = inflater.inflate(R.layout.dialog_disband_team, null);
-                    builder.setView(dialogView);
-                    RecyclerView teamDisbandSelectionList = dialogView.findViewById(R.id.team_selection_disband_list);
-                    teamDisbandSelectionList.setLayoutManager(new GridLayoutManager(getContext(), 1));
+                        //layout for dialog
+                        AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
+                        LayoutInflater inflater = getLayoutInflater();
+                        View dialogView = inflater.inflate(R.layout.dialog_disband_team, null);
+                        builder.setView(dialogView);
+                        RecyclerView teamDisbandSelectionList = dialogView.findViewById(R.id.team_selection_disband_list);
+                        teamDisbandSelectionList.setLayoutManager(new GridLayoutManager(getContext(), 1));
 
-                    List<Team> teamList = new ArrayList<>();//This is the list of teams for the selected class
-                    TeamDisbandAdapter teamDisbandAdapter = new TeamDisbandAdapter(teamList);//Adapter for the RecyclerView
-                    teamDisbandSelectionList.setAdapter(teamDisbandAdapter);
+                        List<Team> teamList = new ArrayList<>();//This is the list of teams for the selected class
+                        TeamDisbandAdapter teamDisbandAdapter = new TeamDisbandAdapter(teamList);//Adapter for the RecyclerView
+                        teamDisbandSelectionList.setAdapter(teamDisbandAdapter);
 
-                    String selectedClass = classSpinner.getSelectedItem().toString(); //Get the selected class from the spinner
+                        String selectedClass = classSpinner.getSelectedItem().toString(); //Get the selected class from the spinner
 
-                    //Searches teacher document -> class_teams -> class -> teams
-                    db.collection("teachers")
-                            .document(Online_user_id.toString())
-                            .get()
-                            .addOnCompleteListener(task -> {
-                                if (task.isSuccessful()) {
-                                    DocumentSnapshot document = task.getResult();
-                                    if (document.exists()) {
-                                        Map<String, Object> classTeams = (Map<String, Object>) document.get("class_teams");
-                                        if (classTeams != null && classTeams.containsKey(selectedClass)) {
+                        //Searches teacher document -> class_teams -> class -> teams
+                        db.collection("teachers")
+                                .document(Online_user_id.toString())
+                                .get()
+                                .addOnCompleteListener(task -> {
+                                    if (task.isSuccessful()) {
+                                        DocumentSnapshot document = task.getResult();
+                                        if (document.exists()) {
+                                            Map<String, Object> classTeams = (Map<String, Object>) document.get("class_teams");
+                                            if (classTeams != null && classTeams.containsKey(selectedClass)) {
 
-                                            Log.d("ClassroomFragment", "Class Teams found for class: " + selectedClass);
+                                                Log.d("ClassroomFragment", "Class Teams found for class: " + selectedClass);
 
-                                            //Extract teams for the given class
-                                            Map<String, Object> classData = (Map<String, Object>) classTeams.get(selectedClass);
-                                            if (classData != null && classData.containsKey("teams")) {
+                                                //Extract teams for the given class
+                                                Map<String, Object> classData = (Map<String, Object>) classTeams.get(selectedClass);
+                                                if (classData != null && classData.containsKey("teams")) {
 
-                                                Log.d("ClassroomFragment", "Teams data found: " + classData.toString());
+                                                    Log.d("ClassroomFragment", "Teams data found: " + classData.toString());
 
-                                                Map<String, List<Map<String, String>>> teamNameMap = (Map<String, List<Map<String, String>>>) classData.get("teams");
-                                                if (teamNameMap != null) {//Iterate through teams in the class
-                                                    for (Map.Entry<String, List<Map<String, String>>> entry : teamNameMap.entrySet()) {
-                                                        String teamName = entry.getKey();
-                                                        List<Map<String, String>> studentMaps = entry.getValue();
+                                                    Map<String, List<Map<String, String>>> teamNameMap = (Map<String, List<Map<String, String>>>) classData.get("teams");
+                                                    if (teamNameMap != null) {//Iterate through teams in the class
+                                                        for (Map.Entry<String, List<Map<String, String>>> entry : teamNameMap.entrySet()) {
+                                                            String teamName = entry.getKey();
+                                                            List<Map<String, String>> studentMaps = entry.getValue();
 
-                                                        List<String> studentNames = new ArrayList<>();
-                                                        for (Map<String, String> studentMap : studentMaps) {//Iterate through students in the team
-                                                            String studentName = studentMap.get("name");
-                                                            if (studentName != null) {
-                                                                studentNames.add(studentName);
+                                                            List<String> studentNames = new ArrayList<>();
+                                                            for (Map<String, String> studentMap : studentMaps) {//Iterate through students in the team
+                                                                String studentName = studentMap.get("name");
+                                                                if (studentName != null) {
+                                                                    studentNames.add(studentName);
+                                                                }
                                                             }
+                                                            Team team = new Team(teamName, studentNames);//Creates a new team object with the team name and students
+                                                            teamList.add(team);//adds the team to the list
                                                         }
-                                                        Team team = new Team(teamName, studentNames);//Creates a new team object with the team name and students
-                                                        teamList.add(team);//adds the team to the list
+                                                        teamDisbandAdapter.notifyDataSetChanged();//notifies the adapter of the changes
                                                     }
-                                                    teamDisbandAdapter.notifyDataSetChanged();//notifies the adapter of the changes
+                                                } else {
+                                                    Log.e("ClassroomFragment", "No 'teams' field found for class: " + selectedClass);
                                                 }
                                             } else {
-                                                Log.e("ClassroomFragment", "No 'teams' field found for class: " + selectedClass);
+                                                Log.e("ClassroomFragment", "No teams data found for class: " + selectedClass);
                                             }
                                         } else {
-                                            Log.e("ClassroomFragment", "No teams data found for class: " + selectedClass);
+                                            Log.d("ClassroomFragment", "No such document for teacher: " + Online_user_id);
                                         }
                                     } else {
-                                        Log.d("ClassroomFragment", "No such document for teacher: " + Online_user_id);
+                                        Log.d("ClassroomFragment", "Error fetching teams for disbandment: ", task.getException());
                                     }
-                                } else {
-                                    Log.d("ClassroomFragment", "Error fetching teams for disbandment: ", task.getException());
-                                }
-                            });
+                                });
 
-                    builder.setPositiveButton("Disband", (dialog, which) -> {
-                        List<Team> selectedTeams = teamDisbandAdapter.getSelectedTeams();//selected teams for disbanding
-                        disbandTeams(selectedTeams);//calls disbandTeams method for disbanding teams
-                    });
+                        builder.setPositiveButton("Disband", (dialog, which) -> {
+                            List<Team> selectedTeams = teamDisbandAdapter.getSelectedTeams();//selected teams for disbanding
+                            disbandTeams(selectedTeams);//calls disbandTeams method for disbanding teams
+                        });
 
-                    builder.setNegativeButton("Cancel", (dialog, which) -> dialog.dismiss());
-                    builder.show();
-                }
-            });
+                        builder.setNegativeButton("Cancel", (dialog, which) -> dialog.dismiss());
+                        builder.show();
+                    }
+                });
+            } else {
+                Toast.makeText(getContext(), "No online user ID found.", Toast.LENGTH_SHORT).show();
+            }
+        } else {
+            showCantUseWhileGameActiveDialog();
         }
-        else {
-        Toast.makeText(getContext(), "No online user ID found.", Toast.LENGTH_SHORT).show();
-        }
+
     }
 
     private void disbandTeams(List<Team> teams) {//method for disbanding teams. List of teams that were selected from the RecyclerView is passed in
@@ -594,7 +610,7 @@ public class ClassroomFragment extends Fragment {
                 .addOnFailureListener(e -> Log.e("ClassroomFragment", "Error disbanding teams", e));
     }
 
-    private void onremoveStudentFromClassDisbandTeamsbyName(String studentName){ //method for removing the student from the team they are in if they are removed from the classroom
+    private void onremoveStudentFromClassDisbandTeamsbyName(String studentName) { //method for removing the student from the team they are in if they are removed from the classroom
         String selectedClass = classSpinner.getSelectedItem().toString();
 
         //Searches teacher document -> class_teams -> class -> teams -> teamName -> studentName
@@ -731,8 +747,7 @@ public class ClassroomFragment extends Fragment {
                                         if (teamsAdapter != null) {
                                             teamsAdapter.notifyDataSetChanged();
                                         }
-                                    }
-                                    else {
+                                    } else {
 
                                         teamsList.clear();
                                         studentTeamMap.clear();
@@ -873,92 +888,92 @@ public class ClassroomFragment extends Fragment {
 
 
     private void showAddStudentDialog() {//for the add student button
+        if (GameActive != true) {
+            if (Online_user_id != null) {
+                dbHelper.getTeacherClasses(Online_user_id, classes -> {
+                    if (classes == null) {
+                        //Show dialog for no classes or error
+                        showNoClassesDialog();
+                    } else {
+                        //Create a dialog to display all students associated with the teacher
+                        AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
+                        LayoutInflater inflater = getLayoutInflater();
+                        View dialogView = inflater.inflate(R.layout.dialog_add_students, null);
+                        builder.setView(dialogView);
 
-        if(Online_user_id != null){
-            dbHelper.getTeacherClasses(Online_user_id, classes -> {
-                if (classes == null) {
-                    //Show dialog for no classes or error
-                    showNoClassesDialog();
-                }
-                else {
-                    //Create a dialog to display all students associated with the teacher
-                    AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
-                    LayoutInflater inflater = getLayoutInflater();
-                    View dialogView = inflater.inflate(R.layout.dialog_add_students, null);
-                    builder.setView(dialogView);
+                        RecyclerView studentSelectionList = dialogView.findViewById(R.id.student_selection_list);
+                        studentSelectionList.setLayoutManager(new GridLayoutManager(getContext(), 3)); // 3 columns
 
-                    RecyclerView studentSelectionList = dialogView.findViewById(R.id.student_selection_list);
-                    studentSelectionList.setLayoutManager(new GridLayoutManager(getContext(), 3)); // 3 columns
+                        List<Student> studentList = new ArrayList<>();
+                        StudentSelectionAdapter selectionAdapter = new StudentSelectionAdapter(studentList); // Assuming you have this adapter with checkboxes
+                        studentSelectionList.setAdapter(selectionAdapter);
 
-                    List<Student> studentList = new ArrayList<>();
-                    StudentSelectionAdapter selectionAdapter = new StudentSelectionAdapter(studentList); // Assuming you have this adapter with checkboxes
-                    studentSelectionList.setAdapter(selectionAdapter);
+                        //Fetch students from Firestore whose 'teachers' array contains the current teacher's name
+                        db.collection("students")
+                                .whereEqualTo("teacher", Online_user_id.toString()) //Fetch only students with this teacher
+                                .get()
+                                .addOnCompleteListener(task_check_students_teach -> {
 
-                    //Fetch students from Firestore whose 'teachers' array contains the current teacher's name
-                    db.collection("students")
-                            .whereEqualTo("teacher",Online_user_id.toString()) //Fetch only students with this teacher
-                            .get()
-                            .addOnCompleteListener(task_check_students_teach -> {
-
-                                //teachers -> classes -> class(array) -> students
-                                //check if students are already in a class
+                                    //teachers -> classes -> class(array) -> students
+                                    //check if students are already in a class
 
 
-                                if (task_check_students_teach.isSuccessful()) {
-                                    studentList.clear();
-                                    for (QueryDocumentSnapshot document : task_check_students_teach.getResult()) {
-                                        Student student = document.toObject(Student.class);
-                                        studentList.add(student); //Add to the list
+                                    if (task_check_students_teach.isSuccessful()) {
+                                        studentList.clear();
+                                        for (QueryDocumentSnapshot document : task_check_students_teach.getResult()) {
+                                            Student student = document.toObject(Student.class);
+                                            studentList.add(student); //Add to the list
+                                        }
+                                        selectionAdapter.notifyDataSetChanged(); //Refresh RecyclerView
+                                    } else {
+                                        Toast.makeText(getContext(), "This student is already in a class you have.", Toast.LENGTH_SHORT).show();
                                     }
-                                    selectionAdapter.notifyDataSetChanged(); //Refresh RecyclerView
-                                }
-                                else{
-                                    Toast.makeText(getContext(), "This student is already in a class you have.", Toast.LENGTH_SHORT).show();
-                                }
-                            });
+                                });
 
-                    builder.setPositiveButton("Add", (dialog, id) -> {
-                        List<Student> selectedStudents = selectionAdapter.getSelectedStudents(); //Get selected students
-                        if (!selectedStudents.isEmpty()) {
-                            String selectedClass = classSpinner.getSelectedItem().toString();
+                        builder.setPositiveButton("Add", (dialog, id) -> {
+                            List<Student> selectedStudents = selectionAdapter.getSelectedStudents(); //Get selected students
+                            if (!selectedStudents.isEmpty()) {
+                                String selectedClass = classSpinner.getSelectedItem().toString();
 
-                            //Get teacher's classes
-                            db.collection("teachers")
-                                    .document(Online_user_id)
-                                    .get()
-                                    .addOnSuccessListener(teacherDoc -> {
-                                        if (teacherDoc.exists()) {
-                                            Map<String, Object> teacherData = teacherDoc.getData();
-                                            if (teacherData != null && teacherData.containsKey("classes")) {
-                                                Map<String, ArrayList<String>> teacherClasses = (Map<String, ArrayList<String>>) teacherData.get("classes"); //Renamed to teacherClasses
+                                //Get teacher's classes
+                                db.collection("teachers")
+                                        .document(Online_user_id)
+                                        .get()
+                                        .addOnSuccessListener(teacherDoc -> {
+                                            if (teacherDoc.exists()) {
+                                                Map<String, Object> teacherData = teacherDoc.getData();
+                                                if (teacherData != null && teacherData.containsKey("classes")) {
+                                                    Map<String, ArrayList<String>> teacherClasses = (Map<String, ArrayList<String>>) teacherData.get("classes"); //Renamed to teacherClasses
 
-                                                boolean studentExists = false;
-                                                for (Student student : selectedStudents) {//for each selected student check if they are already in a class
-                                                    if (isStudentInClasses(student.getName(), teacherClasses)) {
-                                                        studentExists = true;
-                                                        break;
+                                                    boolean studentExists = false;
+                                                    for (Student student : selectedStudents) {//for each selected student check if they are already in a class
+                                                        if (isStudentInClasses(student.getName(), teacherClasses)) {
+                                                            studentExists = true;
+                                                            break;
+                                                        }
+                                                    }
+
+                                                    if (studentExists) {//student is already in a class
+                                                        Toast.makeText(getContext(), "One or more students are already in a class.", Toast.LENGTH_SHORT).show();
+                                                    } else {
+                                                        addStudentsToClass(selectedClass, selectedStudents);
                                                     }
                                                 }
-
-                                                if (studentExists) {//student is already in a class
-                                                    Toast.makeText(getContext(), "One or more students are already in a class.", Toast.LENGTH_SHORT).show();
-                                                } else {
-                                                    addStudentsToClass(selectedClass, selectedStudents);
-                                                }
                                             }
-                                        }
-                                    });
-                        }
-                    });
+                                        });
+                            }
+                        });
 
-                    builder.setNegativeButton("Cancel", (dialog, id) -> dialog.dismiss());
-                    builder.create().show();
+                        builder.setNegativeButton("Cancel", (dialog, id) -> dialog.dismiss());
+                        builder.create().show();
 
-                }
-            });
-        }
-        else {
-            Toast.makeText(getContext(), "No online user ID found.", Toast.LENGTH_SHORT).show();
+                    }
+                });
+            } else {
+                Toast.makeText(getContext(), "No online user ID found.", Toast.LENGTH_SHORT).show();
+            }
+        } else {
+            showCantUseWhileGameActiveDialog();
         }
     }
 
@@ -972,85 +987,95 @@ public class ClassroomFragment extends Fragment {
     }
 
 
-    private void showRemoveStudentDialog() {//dialog for removing a student from a class
+    private void showRemoveStudentDialog() {//dialog for removing a student from a class. ERROR HERE needs to check if student is in a class then handle
+        if (GameActive != true){
+            if (Online_user_id != null) {
+                dbHelper.getTeacherClasses(Online_user_id, classes -> {
+                    if (classes == null) {
+                        //Show dialog for no classes or error
+                        showNoClassesDialog();
+                    } else {
+                        //Create a dialog to display the students in the current class
+                        AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
+                        LayoutInflater inflater = getLayoutInflater();
+                        View dialogView = inflater.inflate(R.layout.dialog_remove_students, null);
+                        builder.setView(dialogView);
 
-        if (Online_user_id != null) {
-            dbHelper.getTeacherClasses(Online_user_id, classes -> {
-                if (classes == null) {
-                    //Show dialog for no classes or error
-                    showNoClassesDialog();
-                } else {
-                    //Create a dialog to display the students in the current class
-                    AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
-                    LayoutInflater inflater = getLayoutInflater();
-                    View dialogView = inflater.inflate(R.layout.dialog_remove_students, null);
-                    builder.setView(dialogView);
+                        Spinner student_remove_Spinner = dialogView.findViewById(R.id.student_spinner_remove);
+                        //RecyclerView studentSelectionList = dialogView.findViewById(R.id.student_selection_list_remove);
+                        List<Student> studentList = new ArrayList<>();
+                        List<String> studentNamesList = new ArrayList<>(); //To hold student names for the Spinner
 
-                    Spinner student_remove_Spinner = dialogView.findViewById(R.id.student_spinner_remove);
-                    //RecyclerView studentSelectionList = dialogView.findViewById(R.id.student_selection_list_remove);
-                    List<Student> studentList = new ArrayList<>();
-                    List<String> studentNamesList = new ArrayList<>(); //To hold student names for the Spinner
+                        String teacherClass = classSpinner.getSelectedItem().toString(); //Get selected class
 
-                    String teacherClass = classSpinner.getSelectedItem().toString(); //Get selected class
+                        //Fetch students for the selected class
+                        db.collection("teachers")
+                                .document(Online_user_id)
+                                .get()
+                                .addOnSuccessListener(documentSnapshot -> {
+                                    if (documentSnapshot.exists()) {
+                                        Map<String, List<String>> mapclasses = (Map<String, List<String>>) documentSnapshot.get("classes");
+                                        if (mapclasses != null && mapclasses.containsKey(teacherClass)) {
+                                            List<String> studentNames = mapclasses.get(teacherClass);
+                                            if (studentNames != null && !studentNames.isEmpty()) {//check if there are any students in the class
 
-                    //Fetch students for the selected class
-                    db.collection("teachers")
-                            .document(Online_user_id)
-                            .get()
-                            .addOnSuccessListener(documentSnapshot -> {
-                                if (documentSnapshot.exists()) {
-                                    Map<String, List<String>> mapclasses = (Map<String, List<String>>) documentSnapshot.get("classes");
-                                    if (mapclasses != null && mapclasses.containsKey(teacherClass)) {
-                                        List<String> studentNames = mapclasses.get(teacherClass);
-                                        //Fetch Student objects from Firestore based on the student names
-                                        db.collection("students")
-                                                .whereIn("name", studentNames) //Query for students by names
-                                                .get()
-                                                .addOnCompleteListener(task -> {
-                                                    if (task.isSuccessful()) {
-                                                        studentList.clear();
-                                                        studentNamesList.clear();
-                                                        for (QueryDocumentSnapshot document : task.getResult()) {
-                                                            Student student = document.toObject(Student.class);
-                                                            studentList.add(student);
-                                                            studentNamesList.add(student.getName());
-                                                        }
-                                                        //Set up the Spinner with student names
-                                                        ArrayAdapter<String> adapter = new ArrayAdapter<>(getContext(), android.R.layout.simple_spinner_item, studentNamesList);
-                                                        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-                                                        student_remove_Spinner.setAdapter(adapter);
-                                                    }
-                                                });
+                                                //Fetch Student objects from Firestore based on the student names
+                                                db.collection("students")
+                                                        .whereIn("name", studentNames) //Query for students by names
+                                                        .get()
+                                                        .addOnCompleteListener(task -> {
+                                                            if (task.isSuccessful()) {
+                                                                studentList.clear();
+                                                                studentNamesList.clear();
+                                                                for (QueryDocumentSnapshot document : task.getResult()) {
+                                                                    Student student = document.toObject(Student.class);
+                                                                    studentList.add(student);
+                                                                    studentNamesList.add(student.getName());
+                                                                }
+                                                                //Set up the Spinner with student names
+                                                                ArrayAdapter<String> adapter = new ArrayAdapter<>(getContext(), android.R.layout.simple_spinner_item, studentNamesList);
+                                                                adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+                                                                student_remove_Spinner.setAdapter(adapter);
+                                                            }
+                                                        });
+                                            }
+                                            else{
+
+                                                Toast.makeText(getContext(), "You have no students in this class", Toast.LENGTH_SHORT).show();
+
+                                            }
+                                        }
                                     }
-                                }
-                            })
-                            .addOnFailureListener(e -> {
-                                // Handle failure
-                            });
+                                })
+                                .addOnFailureListener(e -> {
+                                    // Handle failure
+                                });
 
-                    builder.setPositiveButton("Remove", (dialog, id) -> {
-                        //Get the selected student name
-                        String selectedStudentName = (String) student_remove_Spinner.getSelectedItem();
-                        if (selectedStudentName != null && !selectedStudentName.isEmpty()) {
-                            Log.d("ClassroomFragment", "Removing student: " + selectedStudentName);
-                            removeStudentFromClass(teacherClass, selectedStudentName); // Remove the selected student from the class
-                        }
-                    });
+                        builder.setPositiveButton("Remove", (dialog, id) -> {
+                            //Get the selected student name
+                            String selectedStudentName = (String) student_remove_Spinner.getSelectedItem();
+                            if (selectedStudentName != null && !selectedStudentName.isEmpty()) {
+                                Log.d("ClassroomFragment", "Removing student: " + selectedStudentName);
+                                removeStudentFromClass(teacherClass, selectedStudentName); // Remove the selected student from the class
+                            }
+                        });
 
-                    builder.setNegativeButton("Cancel", (dialog, id) -> dialog.dismiss());
-                    builder.create().show();
-                }
-            });
-        } else {
-            Toast.makeText(getContext(), "No online user ID found.", Toast.LENGTH_SHORT).show();
-        }
-
-
+                        builder.setNegativeButton("Cancel", (dialog, id) -> dialog.dismiss());
+                        builder.create().show();
+                    }
+                });
+            } else {
+                Toast.makeText(getContext(), "No online user ID found.", Toast.LENGTH_SHORT).show();
+            }
 
 
     }
+        else{
+            showCantUseWhileGameActiveDialog();
+        }
+}
 
-    private void removeStudentFromClass(String className, String studentName) {
+    private void removeStudentFromClass(String className, String studentName) {//Error crash when removing a student from a empty class
         if (Online_user_id == null) {
             Log.e("ClassroomFragment", "No online user ID found.");
             return;
@@ -1145,5 +1170,12 @@ public class ClassroomFragment extends Fragment {
                 .show();
     }
 
+    private void showCantUseWhileGameActiveDialog() {
+        new AlertDialog.Builder(getActivity()) //Use 'this' if in Activity; replace with 'getActivity()' in Fragment
+                .setTitle("Active Game Detected")
+                .setMessage("You can not do this action while a game is active.")
+                .setPositiveButton(android.R.string.ok, null)
+                .show();
+    }
 
 }

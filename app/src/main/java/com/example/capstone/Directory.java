@@ -1,21 +1,16 @@
 package com.example.capstone;
 
-import static com.example.capstone.FS_DBHelper.Online_user_id;
 import static com.example.capstone.FS_DBHelper.Teacher_online;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.fragment.app.Fragment;
-import android.content.Intent;
+
 import android.os.Bundle;
-import android.util.Log;
 
 import com.example.capstone.databinding.DirectoryPageBinding;
 
 import com.google.android.material.bottomnavigation.BottomNavigationView;
-import com.google.firebase.firestore.DocumentReference;
-import com.google.firebase.firestore.DocumentSnapshot;
-import com.google.firebase.firestore.FirebaseFirestore;
 
 public class Directory extends AppCompatActivity {
 
@@ -23,7 +18,9 @@ public class Directory extends AppCompatActivity {
 
     private ProfileFragment profileFragment;
 
-    private GamesFragment gamesFragment;
+    private TeacherGameFragment teacherGamesFragment;
+
+    private StudentGameFragment studentGameFragment;
 
     private LeaderBoardFragment leaderBoardFragment;
     private ClassroomFragment teacher_classroomFragment;
@@ -44,7 +41,13 @@ public class Directory extends AppCompatActivity {
 
         //Initializes fragments
         profileFragment = new ProfileFragment();
-        gamesFragment = new GamesFragment();
+        if (Teacher_online==true) {
+            teacherGamesFragment = new TeacherGameFragment();
+        }
+        else{
+            studentGameFragment = new StudentGameFragment();
+        }
+
         leaderBoardFragment = new LeaderBoardFragment();
 
             if (Teacher_online==true) {
@@ -68,8 +71,16 @@ public class Directory extends AppCompatActivity {
                 loadFragment(profileFragment);
                 return true;
             } else if (itemId == R.id.nav_games) {
-                loadFragment(gamesFragment);
-                return true;
+
+                if (Teacher_online==true) {
+                    loadFragment(teacherGamesFragment);
+                    return true;
+                }
+                else{
+                    loadFragment(studentGameFragment);
+                    return true;
+                }
+
             } else if (itemId == R.id.nav_leaderboard) {
                 loadFragment(leaderBoardFragment);
                 return true;
