@@ -4,8 +4,12 @@ package com.example.capstone;
 import static com.example.capstone.FS_DBHelper.Online_user_id;
 
 import android.app.AlertDialog;
+import android.app.ProgressDialog;
 import android.content.Intent;
+import com.google.firebase.database.FirebaseDatabase;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -24,6 +28,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.firestore.FieldValue;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
@@ -32,16 +37,21 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Random;
 
 public class TeacherGameFragment extends Fragment {
-    public static boolean GameActive = false;
+    public static boolean GameActive;
 
     private Spinner timerSpinner;
     private Spinner modeSpinner;
     private Spinner classSpinner;
 
     private Spinner topicSpinner;
+
+    private Spinner roundSpinner;
     private Button startGameButton;
+    private Button deleteGameDataButton;
+
     private RecyclerView teamsListGrid;
 
     private FirebaseFirestore firestore;
@@ -51,12 +61,14 @@ public class TeacherGameFragment extends Fragment {
     private List<Team> teamsList;
     private TeamAdapter teamsAdapter;
 
-    private static final String TAG = "GameFragment";
+
+    private static final String TAG = "TeacherGameFragment";
     private String teacherName = Online_user_id; // Replace with the logged-in teacher's name
 
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
+
         View view = inflater.inflate(R.layout.activity_game_setup, container, false);
 
         // Initialize Firebase
@@ -69,34 +81,20 @@ public class TeacherGameFragment extends Fragment {
         modeSpinner = view.findViewById(R.id.mode_spinner);
         classSpinner = view.findViewById(R.id.class_spinner);
         topicSpinner = view.findViewById(R.id.topic_spinner);
+
+        deleteGameDataButton = view.findViewById(R.id.delete_game_data_button);
         startGameButton = view.findViewById(R.id.start_game_button);
+
         teamsListGrid = view.findViewById(R.id.teamsList);
+        roundSpinner = view.findViewById(R.id.round_spinner);
+        //include round
 
-        // Set up timer spinner
-        ArrayAdapter<CharSequence> timerAdapter = ArrayAdapter.createFromResource(getContext(),
-                R.array.timer_options, android.R.layout.simple_spinner_item);
-        timerAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-        timerSpinner.setAdapter(timerAdapter);
-
-        // Set up mode spinner
-        ArrayAdapter<CharSequence> modeAdapter = ArrayAdapter.createFromResource(getContext(),
-                R.array.mode_options, android.R.layout.simple_spinner_item);  // Add mode options in your strings.xml
-        modeAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-        modeSpinner.setAdapter(modeAdapter);
-
-        // Set up mode spinner
-        ArrayAdapter<CharSequence> topicAdapter = ArrayAdapter.createFromResource(getContext(),
-                R.array.topic_options, android.R.layout.simple_spinner_item);  // Add mode options in your strings.xml
-        topicAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-        topicSpinner.setAdapter(topicAdapter);
+        // Set up spinners
+        setUpSpinners();
 
 
         //Set up RecyclerView (GridLayoutManager for teams)
-        teamsList = new ArrayList<>();
-        teamsAdapter = new TeamAdapter(teamsList);
-        teamsListGrid.setAdapter(teamsAdapter);
-        teamsListGrid.setLayoutManager(new GridLayoutManager(getContext(), 1)); // Grid layout with 1 column
-
+        setUpTeamsListGrid();
 
         // Load classes for the teacher and set up the class spinner
         loadClasses();
@@ -104,59 +102,308 @@ public class TeacherGameFragment extends Fragment {
         //On Start Game Button Click
         startGameButton.setOnClickListener(v -> startGame());
 
+        deleteGameDataButton.setOnClickListener(v -> getActiveGameIdForDeletion());
+
+
+
         return view;
     }
 
+    private void setUpSpinners() {
+        // Timer Spinner
+        ArrayAdapter<CharSequence> timerAdapter = ArrayAdapter.createFromResource(getContext(),
+                R.array.timer_options, android.R.layout.simple_spinner_item);
+        timerAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        timerSpinner.setAdapter(timerAdapter);
+
+        // Mode Spinner
+        ArrayAdapter<CharSequence> modeAdapter = ArrayAdapter.createFromResource(getContext(),
+                R.array.mode_options, android.R.layout.simple_spinner_item);
+        modeAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        modeSpinner.setAdapter(modeAdapter);
+
+        // Topic Spinner
+        ArrayAdapter<CharSequence> topicAdapter = ArrayAdapter.createFromResource(getContext(),
+                R.array.topic_options, android.R.layout.simple_spinner_item);
+        topicAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        topicSpinner.setAdapter(topicAdapter);
+
+        //Round Spinner
+        ArrayAdapter<CharSequence> roundAdapter = ArrayAdapter.createFromResource(getContext(),
+                R.array.round_options, android.R.layout.simple_spinner_item);
+        roundAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        roundSpinner.setAdapter(roundAdapter);
+    }
+
+    private void setUpTeamsListGrid() {
+        teamsList = new ArrayList<>();
+        teamsAdapter = new TeamAdapter(teamsList);
+        teamsListGrid.setAdapter(teamsAdapter);
+        teamsListGrid.setLayoutManager(new GridLayoutManager(getContext(), 1)); // Grid layout with 1 column
+    }
+
+
+
+    /*Start Game Button stuff*/
     // Method to start the game
     private void startGame() {
-        if (GameActive != true) {
-            if (classSpinner.getSelectedItem() != null){
+            if (classSpinner.getSelectedItem() != null) {
 
-                // Get the selected timer as a String and convert it to an int
-                String selectedTimerString = timerSpinner.getSelectedItem().toString();
-            String selectedMode = modeSpinner.getSelectedItem().toString();
-            String selectedTopic = topicSpinner.getSelectedItem().toString();
-            String selectedClass = classSpinner.getSelectedItem().toString(); // Get the selected class
-
-            Log.d(TAG, "IS CLASS SPINNER NULL? " + classSpinner.getSelectedItem());
-
-
-            // Check if in "Team Mode" and there are no teams
-            if ("Team Mode".equals(selectedMode) && (teamsList == null || teamsList.isEmpty())) {
-                showNoTeamsDialog();  // Show dialog if no teams exist in "Team Mode"
-                return;
-            }
-
-            // Check if the selected class has any students
-            checkIfClassHasStudents(selectedClass, hasStudents -> {
-                if (!hasStudents) {
-                    showNoStudentsDialog(); // Show dialog if no students are in the class
-                } else {
-                    // Proceed to create the game since there are students in the class
-                    GameActive = true;//While this is true the teacher needs to not be able to do any functions in the classroom fragment
-                    Log.d(TAG, "NEW GAME CREATED WITH: " + selectedClass);
-                    createNewGame(selectedTimerString, selectedMode, selectedClass, selectedTopic);
-                    startDrawlingGameActivity();
-                }
-            });
-        }
-            else{
+                checkIfGameCanBeStarted();
+            } else {
                 showNoClassesDialog();
             }
+
+    }
+
+    // Method to check if a game can be started
+    private void checkIfGameCanBeStarted() {
+        firestore.collection("teachers")
+                .document(teacherName)
+                .get()
+                .addOnSuccessListener(documentSnapshot -> {
+                    if (documentSnapshot.exists() && documentSnapshot.contains("activeGame")) {
+                        String activeGameId = documentSnapshot.getString("activeGame");
+
+                        // If active game exists, show prompt to delete it
+                        if (activeGameId != null) {
+                            Toast.makeText(getContext(), "An active game exists. Delete the current game before starting a new one.", Toast.LENGTH_LONG).show();
+                        } else {
+                            // No active game, proceed with starting a new one
+                            createNewGameFlow();
+                        }
+                    }
+                })
+                .addOnFailureListener(e -> Log.e(TAG, "Error checking active game status: ", e));
+    }
+
+    // Create a new game with timer, mode, and class
+    private void createNewGame( String timer, String mode, String selectedClass, String selectedTopic, String selectedRounds) {//move to DrawingGameActivity?
+
+        String gameId = "game_" + System.currentTimeMillis(); // Example game ID
+        DocumentReference teacherDocRef = firestore.collection("teachers").document(teacherName);
+
+        //prepare data for game
+        Map<String, Object> gameData = new HashMap<>();
+        gameData.put("activeGame", gameId); //Update the active game for this teacher
+        //gameData.put("mode", mode);
+        gameData.put("last_class_played_with", selectedClass); //Add selected class
+        //gameData.put("topic", selectedTopic);
+        //gameData.put("timer", timer);
+        //gameData.put("rounds", selectedRounds);
+
+        // Select the first drawer for each team
+        Map<String, String> teamDrawers = selectFirstDrawersForTeams();
+        if (teamDrawers.isEmpty()) {
+            // If the team validation failed, stop the game creation process
+            GameActive = false;
+
+            return;
         }
-        else{//temporary. Wil need to make it so they go back to active game
-            Toast.makeText(getContext(), "Game is already active", Toast.LENGTH_SHORT).show();
+
+
+        //Update teachers data in database with active_game and with what class
+        teacherDocRef.update(gameData)
+                .addOnSuccessListener(aVoid -> {
+                    Log.d(TAG, "Game started: " + gameId);
+
+
+                    // After the data is successfully set, start the drawing game activity
+                    uploadGameDataToFirestore(gameId, timer, mode, selectedClass, selectedTopic, Online_user_id, selectedRounds, teamDrawers);
+                })
+                .addOnFailureListener(e -> {
+                    Log.w(TAG, "Error starting game", e);
+                    Toast.makeText(getContext(), "Failed to start game", Toast.LENGTH_SHORT).show();
+                });
+
+
+    }
+
+    // Method to randomly select a student from each team, ensuring each team has at least two students
+    private Map<String, String> selectFirstDrawersForTeams() {
+        Map<String, String> teamDrawers = new HashMap<>();
+
+        for (Team team : teamsList) {
+            List<String> studentNames = team.getStudentNames();
+            Log.d("GameFragment", "Number of students in team " + team.getTeamName() + ": " + studentNames.size());
+            // Ensure the team has at least two students
+            if (studentNames.size() < 2) {
+                // If any team has fewer than two members, show a message and return an empty map to prevent the game from starting
+                Toast.makeText(getContext(), "Team " + team.getTeamName() + " must have at least two members!", Toast.LENGTH_LONG).show();
+                GameActive = false;
+                return new HashMap<>(); // Return an empty map to signal an issue
+            }
+
+            // Randomly select a student as the drawer
+            int randomIndex = new Random().nextInt(studentNames.size());
+            String selectedDrawer = studentNames.get(randomIndex);
+            teamDrawers.put(team.getTeamName(), selectedDrawer);
         }
+
+        return teamDrawers;
+    }
+
+    // Method to upload game data to Firestore
+    private void uploadGameDataToFirestore(String gameId, String timer, String mode, String selectedClass, String selectedTopic, String teacherName, String selectedRounds, Map<String, String> teamDrawers) {
+        // Create a map to store game data
+        Map<String, Object> gameData = new HashMap<>();
+        gameData.put("timer", timer);
+        gameData.put("mode", mode);
+        gameData.put("class", selectedClass);
+        gameData.put("topic", selectedTopic);
+        gameData.put("teacherName", teacherName);
+        gameData.put("rounds", selectedRounds);
+        gameData.put("teamDrawers", teamDrawers); // Add the selected drawers to the game data
+
+        // Initialize GusseButtonQueue and other data structures
+        Map<String, List<String>> GuessButtonQueue = new HashMap<>();
+        Map<String, List<Integer>> timeLeftInTeamGame = new HashMap<>();
+        Map<String, List<Integer>> roundInEachTeam = new HashMap<>();
+        Map<String, List<String>> lastRoundInEachTeam = new HashMap<>();
+        Map<String, List<String>> currentWordInEachTeam = new HashMap<>();
+
+        int timerInt = Integer.parseInt(timer); // Convert timer to int
+
+        for (Team team : teamsList) {
+            GuessButtonQueue.put(team.getTeamName(), new ArrayList<>()); // Initialize with empty list for each team
+
+            List<Integer> timerList = new ArrayList<>(); // Array for the times for each team game
+            timerList.add(timerInt); // Add the timer value to the list
+
+            List<Integer> teamsRound = new ArrayList<>(); // Array for the round that each team game is on
+            teamsRound.add(1); // Start with round 1
+
+            List<String> lastRound = new ArrayList<>();
+            lastRound.add("Round: 1");
+
+            List<String> currentWord = new ArrayList<>();
+            currentWord.add("");
+
+            Log.d("GameData", "Uploading timer value: " + timerInt);
+            timeLeftInTeamGame.put(team.getTeamName(), timerList);
+            roundInEachTeam.put(team.getTeamName(), teamsRound);
+            lastRoundInEachTeam.put(team.getTeamName(), lastRound);
+            currentWordInEachTeam.put(team.getTeamName(), currentWord);
+        }
+        gameData.put("GuessButtonQueue", GuessButtonQueue); // Add GusseButtonQueue to the game data
+        gameData.put("timeLeftInTeamGame", timeLeftInTeamGame); // Add timeLeftInTeamGame to the game data
+        gameData.put("roundInEachTeam", roundInEachTeam); // Add roundInEachTeam to the game data
+        gameData.put("currentWordInEachTeam", currentWordInEachTeam); // Add currentWordInEachTeam to the game data
+        gameData.put("lastRoundInEachTeam", lastRoundInEachTeam); // Add lastRoundInEachTeam to the game data
+
+        // Upload to Firestore
+        firestore.collection("games").document(gameId).set(gameData)
+                .addOnSuccessListener(aVoid -> {
+                    // Data uploaded, redirect players to the game
+                    // Update activeGame field for all students in the teams
+                    updateStudentsActiveGameAndScore(gameId); // Pass gameId to players
+                    Toast.makeText(getContext(), "Game started with class " + selectedClass + "!", Toast.LENGTH_SHORT).show();
+                    Log.d("Firestore", "Game data uploaded/created successfully " + gameId);
+
+                    // Increment the round for each team
+                    for (Team team : teamsList) {
+                        updateRound(team.getTeamName(), gameId);
+                    }
+
+                })
+                .addOnFailureListener(e -> {
+                    Log.w("Firestore", "Error uploading game data", e);
+                });
     }
 
 
 
-    private void startDrawlingGameActivity() {
-        Intent intent = new Intent(getActivity(), DrawlingGameActivity.class);
-        startActivity(intent);
+    //Increment each roundInEachTeam due to firestore storing numbers as long and not int
+    private void updateRound(String teamName, String gameId) {
+        firestore.collection("games").document(gameId)
+                .update("roundInEachTeam." + teamName, FieldValue.increment(1))
+                .addOnSuccessListener(aVoid -> Log.d("Firestore", "Round for team " + teamName + " updated successfully."))
+                .addOnFailureListener(e -> Log.e("FirestoreError", "Error updating round for team " + teamName, e));
     }
 
 
+
+
+
+
+    // Method to delete the current game and reset the teacher's activeGame field
+    private void getActiveGameIdForDeletion() {
+        firestore.collection("teachers")
+                .document(teacherName)
+                .get()
+                .addOnSuccessListener(documentSnapshot -> {
+                    if (documentSnapshot.exists() && documentSnapshot.contains("activeGame")) {
+                        String activeGameId = documentSnapshot.getString("activeGame");
+
+                        if (activeGameId != null) {
+                            // Fetch the class name associated with the active game
+                            getClasNameOfLastGame(activeGameId); // Show the delete confirmation dialog
+
+                           // deleteGameData(activeGameId); // Call method to delete game data
+                           // clearTeachersActiveGame(); // Clear the teacher's activeGame field
+                        } else {
+                            Toast.makeText(getContext(), "No active game found to delete.", Toast.LENGTH_SHORT).show();
+                        }
+                    } else {
+                        Toast.makeText(getContext(), "No active game found.", Toast.LENGTH_SHORT).show();
+                    }
+                })
+                .addOnFailureListener(e -> Log.e(TAG, "Error fetching active game for deletion", e));
+    }
+
+    private void getClasNameOfLastGame(String activeGameId) {
+        firestore.collection("games")
+                .document(activeGameId)
+                .get()
+                .addOnCompleteListener(task_getLastClassName -> {
+                    if (task_getLastClassName.isSuccessful() && task_getLastClassName.getResult() != null) {
+                        DocumentSnapshot document = task_getLastClassName.getResult();
+                        if (document.exists() && document.get("class") != null) {
+                            String lastClassPlayedWith = document.getString("class");
+                            showDeleteConfirmationDialog(activeGameId, lastClassPlayedWith); // Pass class name to dialog
+                        } else {
+                            showDeleteConfirmationDialog(activeGameId, "Unknown Class"); // Default if class name is not found
+                        }
+                    } else {
+                        showDeleteConfirmationDialog(activeGameId, "Unknown Class"); // Handle failure case
+                    }
+                });
+    }
+
+    //clear teachers active game field
+    private void clearTeachersActiveGame() {
+        firestore.collection("teachers")
+                .document(teacherName)
+                .update("activeGame", null)
+                .addOnSuccessListener(aVoid -> Log.d("Firestore", "Active game field cleared successfully for teacher: " + teacherName))
+                .addOnFailureListener(e -> Log.e("FirestoreError", "Error clearing active game field for teacher: " + teacherName, e));
+    }
+
+
+
+    private void createNewGameFlow() {
+        String selectedTimer = timerSpinner.getSelectedItem().toString();
+        String selectedMode = modeSpinner.getSelectedItem().toString();
+        String selectedTopic = topicSpinner.getSelectedItem().toString();
+        String selectedClass = classSpinner.getSelectedItem().toString();
+        String selectedRounds = roundSpinner.getSelectedItem().toString();
+
+        // Check for teams in "Team Mode"
+        if ("Team Mode".equals(selectedMode) && (teamsList == null || teamsList.isEmpty())) {
+            showNoTeamsDialog();
+            return;
+        }
+
+        // Verify if the class has students
+        checkIfClassHasStudents(selectedClass, hasStudents -> {
+            if (!hasStudents) {
+                showNoStudentsDialog();
+            } else {
+                GameActive = true; // Prevent starting multiple games
+                createNewGame(selectedTimer, selectedMode, selectedClass, selectedTopic, selectedRounds);
+            }
+        });
+    }
 
     // Method to check if a class has students
     private void checkIfClassHasStudents(String selectedClass, final OnStudentsCheckCompleteListener listener) {
@@ -168,87 +415,31 @@ public class TeacherGameFragment extends Fragment {
                         if (document.exists()) {
                             Map<String, Object> classData = (Map<String, Object>) document.get("classes");
                             if (classData != null && classData.containsKey(selectedClass)) {
-                                // Retrieve the array of students in the selected class
                                 List<Map<String, Object>> studentsList = (List<Map<String, Object>>) classData.get(selectedClass);
-
-                                // Check if the students list is not empty
-                                if (studentsList != null && !studentsList.isEmpty()) {
-                                    listener.onCheckComplete(true); // Students exist in the class
-                                    return;
-                                }
+                                listener.onCheckComplete(studentsList != null && !studentsList.isEmpty());
+                                return;
                             }
                         }
                     }
-                    listener.onCheckComplete(false);  // No students found or error
+                    listener.onCheckComplete(false);
                 });
     }
 
-    // Callback interface to check if class has students
     private interface OnStudentsCheckCompleteListener {
         void onCheckComplete(boolean hasStudents);
-    }
-
-    // Dialog to show if no students are found in the class
-    private void showNoStudentsDialog() {
-        new AlertDialog.Builder(getActivity())
-                .setTitle("No Students")
-                .setMessage("The selected class has no students. Please add students to the class before starting the game.")
-                .setPositiveButton(android.R.string.ok, null)
-                .show();
-    }
-
-    // Create a new game with timer, mode, and class
-    private void createNewGame(String timer, String mode, String selectedClass, String selectedTopic) {//move to DrawlingGameActivity?
-
-        String gameId = "game_" + System.currentTimeMillis(); // Example game ID
-        DocumentReference teacherDocRef = firestore.collection("teachers").document(teacherName);
-
-        //prepare data for game
-        Map<String, Object> gameData = new HashMap<>();
-        gameData.put("activeGame", gameId); //Update the active game for this teacher
-        gameData.put("mode", mode);
-        gameData.put("class", selectedClass); //Add selected class
-        gameData.put("topic", selectedTopic);
-
-        //Update Firestore with the new game details
-        teacherDocRef.update(gameData)
-                .addOnSuccessListener(aVoid -> {
-                    Log.d(TAG, "Firestore updated with active game: " + gameId);
-
-                    // After the data is successfully set, start the drawing game activity
-                    startDrawlingGameActivity(timer, mode, selectedClass, selectedTopic);
-                })
-                .addOnFailureListener(e -> {
-                    Log.w(TAG, "Error updating Firestore", e);
-                    Toast.makeText(getContext(), "Failed to start game", Toast.LENGTH_SHORT).show();
-                });
-
-
-    }
-
-    // Method to start DrawlingGameActivity and pass the necessary data
-    private void startDrawlingGameActivity(String timer, String mode, String selectedClass, String selectedTopic) {
-        Intent intent = new Intent(getActivity(), DrawlingGameActivity.class);
-        intent.putExtra("timer", timer);
-        intent.putExtra("mode", mode);
-        intent.putExtra("class", selectedClass);
-        intent.putExtra("topic", selectedTopic);
-        startActivity(intent);
     }
 
 
     // Load classes for the teacher into the class spinner
     private void loadClasses() {
-        DocumentReference teacherDocRef = firestore.collection("teachers")
-                .document(teacherName);
-
+        DocumentReference teacherDocRef = firestore.collection("teachers").document(teacherName);
         teacherDocRef.get()
                 .addOnSuccessListener(documentSnapshot -> {
                     if (documentSnapshot.exists()) {
                         Map<String, Object> teacherData = documentSnapshot.getData();
 
                         if (teacherData != null) {
-                            // Assuming class names are stored in a "classes" field in the teacher document
+                            // class names are stored in a "classes" field in the teacher document
                             Map<String, Object> classes = (Map<String, Object>) teacherData.get("classes");
 
                             if (classes != null) {
@@ -350,6 +541,87 @@ public class TeacherGameFragment extends Fragment {
                         });
             });
         }
+    }
+
+    private void updateStudentsActiveGameAndScore(String gameId) {
+        // Loop through each team in the teamsList
+        for (Team team : teamsList) {
+            List<String> studentNames = team.getStudentNames(); // Get the list of students in the team
+
+            // For each student in the team, update their activeGame field
+            for (String studentName : studentNames) {
+                DocumentReference studentDocRef = firestore.collection("students").document(studentName);
+                studentDocRef.update("activeGame", gameId, "score", 0)//update score to 0 when starting a new game and update activeGame
+                        .addOnSuccessListener(aVoid -> {
+                            Log.d(TAG, "Updated activeGame for student: " + studentName);
+                        })
+                        .addOnFailureListener(e -> {
+                            Log.e(TAG, "Failed to update activeGame for student: " + studentName, e);
+                        });
+            }
+        }
+    }
+
+
+    private void deleteGameData(String gameId) {
+        // Initialize Firestore and Realtime Database instances
+        FirebaseFirestore db = FirebaseFirestore.getInstance();
+        DatabaseReference realtimeDb = FirebaseDatabase.getInstance().getReference();
+
+        // Delete game data from Firestore
+        db.collection("games").document(gameId).delete()
+                .addOnSuccessListener(aVoid -> {
+                    // Now delete the game data from Realtime Database
+                    realtimeDb.child("games").child(gameId).removeValue()
+                            .addOnSuccessListener(aVoid2 -> {
+                                Log.d("RealtimeDatabase", "Game data deleted from Realtime Database!");
+                                GameActive = false;
+                            })
+                            .addOnFailureListener(e -> {
+                                Log.w("RealtimeDatabase", "Error deleting game data from Realtime Database", e);
+                            });
+
+                    Log.d("Firestore", "Game data deleted from Firestore!");
+                })
+                .addOnFailureListener(e -> {
+                    Log.w("Firestore", "Error deleting game data from Firestore", e);
+                });
+    }
+
+
+
+    private void showDeleteConfirmationDialog(String activeGameId, String lastClassPlayedWith) {
+        if (!lastClassPlayedWith.equals("Unknown Class")) {
+            new AlertDialog.Builder(getActivity())
+
+                    .setTitle("Delete Previous Game?")
+                    .setMessage("An active game exists for the class \"" + lastClassPlayedWith + "\". Starting a new game will delete the previous game data. Do you want to continue?")
+                    .setPositiveButton("Yes", (dialog, which) -> {
+
+                        //Delete the old game data
+                        deleteGameData(activeGameId);
+
+                        //Clear the teacher's activeGame field
+                        clearTeachersActiveGame();
+
+
+                    })
+                    .setNegativeButton("No", null) // Do nothing if the user chooses No
+                    .show();
+        } else {
+            Log.d("Firestore", "Unknown Class found.");
+        }
+    }
+
+
+
+    // Dialog to show if no students are found in the class
+    private void showNoStudentsDialog() {
+        new AlertDialog.Builder(getActivity())
+                .setTitle("No Students")
+                .setMessage("The selected class has no students. Please add students to the class before starting the game.")
+                .setPositiveButton(android.R.string.ok, null)
+                .show();
     }
 
     private void showNoClassesDialog() {//prevents error if no classes exist for teacher

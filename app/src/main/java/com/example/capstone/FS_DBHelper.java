@@ -62,13 +62,13 @@ public class FS_DBHelper {
     }
 
     //For help Adding students to database
-    public static void addStudent(String name, String student_password, String teacher, String class_id, String activeGame) {
+    public static void addStudent(String name, String student_password, String teacher, int score, String activeGame) {
         Map<String, Object> student = new HashMap<>();
         //Columns
         student.put("name", name);
         student.put("student_password", student_password);
         student.put("teacher", teacher);
-        student.put("class_id", class_id);
+        student.put("score", score);
         student.put("activeGame", activeGame);
 
 
@@ -170,27 +170,29 @@ public class FS_DBHelper {
     }
 
     public interface FetchStudentDataCallback {
-        void onDataFetched(String studentName);//add more data here later
+        void onDataFetched(String studentName, String teacherName); // Add teacherName to the callback
     }
 
-    public static void fetchStudentData(FetchStudentDataCallback fetch_student_data_callback){
+    public static void fetchStudentData(FetchStudentDataCallback fetch_student_data_callback) {
         FirebaseFirestore cloud_fs_db = FirebaseFirestore.getInstance();
-        cloud_fs_db.collection("students").document(Online_user_id).get().addOnCompleteListener(task_fetch_student_data ->{//fetch student based off id
-            if(task_fetch_student_data.isSuccessful()){
+
+        // Fetch student document using Online_user_id
+        cloud_fs_db.collection("students").document(Online_user_id).get().addOnCompleteListener(task_fetch_student_data -> {
+            if (task_fetch_student_data.isSuccessful()) {
                 DocumentSnapshot student_id = task_fetch_student_data.getResult();
                 if (student_id != null) {
                     String student_name = student_id.getString("name");
-                    //String
+                    String teacher_name = student_id.getString("teacher"); // Assuming teacher_id directly stores the teacher's name
 
-                    //Trigger the callback with values
+                    // Trigger the callback with both student name and teacher name
                     if (fetch_student_data_callback != null) {
-                        fetch_student_data_callback.onDataFetched(student_name);//add more here later;//sends back student name
+                        fetch_student_data_callback.onDataFetched(student_name, teacher_name);
                     }
                 }
             } else {
-                //Handle error or return some default value
+                // Handle error or return default value in case of failure
                 if (fetch_student_data_callback != null) {
-                    fetch_student_data_callback.onDataFetched(null);//add more here later;
+                    fetch_student_data_callback.onDataFetched(null, null);
                 }
             }
         });

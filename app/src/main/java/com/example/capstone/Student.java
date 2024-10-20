@@ -5,7 +5,7 @@ public class Student {//Student model
     private String password;
     private String teacher;
 
-    private String class_id;
+    private int score;
 
     private String activeGame;
 
@@ -15,11 +15,11 @@ public class Student {//Student model
 
     //Default constructor is required for Firestore
 
-    public Student(String name, String password, String teacher, String class_id, String activeGame) {
+    public Student(String name, String password, String teacher, int score, String activeGame) {
         this.name = name;
         this.password = password;
         this.teacher = teacher;
-        this.class_id = class_id;
+        this.score = score;
         this.activeGame = activeGame;
     }
 //Getters and setters
@@ -46,21 +46,22 @@ public class Student {//Student model
     public String getTeacher() {
         return teacher;
     }
-    public String getClass_id() {
-        return class_id;
+    public int getscore() {
+        return score;
 
     }
+    public String getActiveGame() {
+        return activeGame;
+    }
 
-    public void setClass_id(String class_id) {
-        this.class_id = class_id;
+    public void setscore(int score) {
+        this.score = score;
     }
 
     public void setActiveGame(String activeGame) {
          this.activeGame = activeGame;
     }
-    public String getActiveGame() {
-        return activeGame;
-    }
+
 
 
 

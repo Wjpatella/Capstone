@@ -147,7 +147,7 @@ public class ActivityRegister extends MainActivity {
                             //Extract selected teachers from MultiAutoCompleteTextView
                             String selectedTeacher = teachersSpinner.getSelectedItem().toString();
 
-                            FS_DBHelper.addStudent(studentName, studentPassword, selectedTeacher, null, null); //Calls the FS_DBHelper to add the student to the Cloudstore firebase
+                            FS_DBHelper.addStudent(studentName, studentPassword, selectedTeacher, 0, null); //Calls the FS_DBHelper to add the student to the Cloudstore firebase
                             goto_login_activity();
                         }
                     });

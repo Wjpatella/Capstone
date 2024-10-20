@@ -51,7 +51,7 @@
         android:id="@+id/timer_label"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Select Timer (Seconds per Turn):"
+        android:text="Select Timer (Seconds per Turn)"
         android:textSize="16dp"
         app:layout_constraintTop_toBottomOf="@id/class_spinner"
         app:layout_constraintStart_toStartOf="parent"
@@ -69,6 +69,29 @@
         app:layout_constraintWidth_percent="0.8"
         android:layout_marginTop="8dp"/>
 
+    <!-- round Selection -->
+    <TextView
+        android:id="@+id/rounds_label"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Select How Many Rounds to Play"
+        android:textSize="16dp"
+        app:layout_constraintTop_toBottomOf="@id/timer_spinner"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        android:layout_marginTop="8dp"/>
+
+    <Spinner
+        android:id="@+id/round_spinner"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:entries="@array/round_options"
+        app:layout_constraintTop_toBottomOf="@id/rounds_label"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintWidth_percent="0.8"
+        android:layout_marginTop="8dp"/>
+
 
     <!-- Mode Selection -->
     <TextView
@@ -77,7 +100,7 @@
         android:layout_height="wrap_content"
         android:text="Select Mode"
         android:textSize="16dp"
-        app:layout_constraintTop_toBottomOf="@id/timer_spinner"
+        app:layout_constraintTop_toBottomOf="@id/round_spinner"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         android:layout_marginTop="8dp"/>
@@ -119,33 +142,57 @@
 
 
     <!-- Start Game Button -->
-    <Button
-        android:id="@+id/start_game_button"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Start Game"
-        app:layout_constraintTop_toBottomOf="@id/topic_spinner"
-        app:layout_constraintStart_toStartOf="parent"
+    <LinearLayout
+        android:id="@+id/buttonLayout"
+        android:layout_width="360dp"
+        android:layout_height="70dp"
+        android:orientation="horizontal"
         app:layout_constraintEnd_toEndOf="parent"
-        android:layout_marginTop="16dp"/>
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/topic_spinner">
+
+        <Button
+            android:id="@+id/start_game_button"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:backgroundTint="#40CD45"
+            android:text="Start Game"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+
+            />
+
+        <!-- Delete Game Data Button -->
+        <Button
+            android:id="@+id/delete_game_data_button"
+            android:layout_width="190dp"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="35dp"
+            android:layout_marginTop="16dp"
+            android:backgroundTint="#CA4242"
+            android:text="Delete Game Data" />
+
+    </LinearLayout>
+
 
     <!-- List of Teams -->
     <TextView
         android:id="@+id/teams_label"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
         android:text="Teams in Class"
         android:textSize="18sp"
-        app:layout_constraintTop_toBottomOf="@id/start_game_button"
-        app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        android:layout_marginTop="16dp"/>
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/buttonLayout" />
 
     <!-- List of Teams -->
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/teamsList"
         android:layout_width="match_parent"
-        android:layout_height="196dp"
+        android:layout_height="200dp"
         android:layout_marginStart="20dp"
         android:layout_marginTop="60dp"
         android:layout_marginEnd="20dp"
@@ -161,6 +208,7 @@
         app:layout_constraintVertical_bias="0.237">
 
     </androidx.recyclerview.widget.RecyclerView>
+
 
 
 </androidx.constraintlayout.widget.ConstraintLayout>

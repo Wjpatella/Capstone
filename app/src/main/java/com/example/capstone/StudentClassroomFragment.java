@@ -34,7 +34,7 @@ public class StudentClassroomFragment extends Fragment {
     private List<String> studentList;
     private List<Team> teamsList;
 
-    private FirebaseFirestore db;
+    private FirebaseFirestore firestore;
     private StudentAdapter studentAdapter;
     private TeamAdapter teamAdapter;
 
@@ -43,7 +43,7 @@ public class StudentClassroomFragment extends Fragment {
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_student_classroom, container, false);
 
-        db = FirebaseFirestore.getInstance();
+        firestore = FirebaseFirestore.getInstance();
 
         // Initialize views
         teacherTextView = view.findViewById(R.id.teacher_text);
@@ -72,7 +72,7 @@ public class StudentClassroomFragment extends Fragment {
 
     private void loadClassroomData() {
         if (Online_user_id != null) {
-            db.collection("students").document(Online_user_id)
+            firestore.collection("students").document(Online_user_id)
                     .get()
                     .addOnSuccessListener(documentSnapshot -> {
                         if (documentSnapshot.exists()) {
@@ -106,7 +106,7 @@ public class StudentClassroomFragment extends Fragment {
     }
 
     private void getStudentsClassName(String studentsTeacher, OnClassNameRetrievedListener listener) {//Gets the class name for the student
-        db.collection("teachers").document(studentsTeacher)
+        firestore.collection("teachers").document(studentsTeacher)
                 .get()
                 .addOnSuccessListener(documentSnapshot -> {
                     if (documentSnapshot.exists()) {
@@ -127,7 +127,7 @@ public class StudentClassroomFragment extends Fragment {
     }
 
     private void getTeamsClass(String studentsTeacher, String className) {//Gets the teams in there class for the student
-        db.collection("teachers")
+        firestore.collection("teachers")
                 .document(studentsTeacher)
                 .get()
                 .addOnCompleteListener(task_get_teams -> {
@@ -209,7 +209,7 @@ public class StudentClassroomFragment extends Fragment {
     private void loadStudentsForClass(String studentsTeacher, String className) {//Gets the students in there class for the student
         Log.d("$$StudentClassroomFragment", "teacher: " + studentsTeacher);
         Log.d("$$StudentClassroomFragment", "Class Name: " + className);
-        db.collection("teachers")
+        firestore.collection("teachers")
                 .document(studentsTeacher)
                 .get()
                 .addOnSuccessListener(documentSnapshot -> {

@@ -22,7 +22,7 @@ public class Directory extends AppCompatActivity {
 
     private StudentGameFragment studentGameFragment;
 
-    private LeaderBoardFragment leaderBoardFragment;
+
     private ClassroomFragment teacher_classroomFragment;
     private StudentClassroomFragment student_classroomFragment;
 
@@ -48,7 +48,6 @@ public class Directory extends AppCompatActivity {
             studentGameFragment = new StudentGameFragment();
         }
 
-        leaderBoardFragment = new LeaderBoardFragment();
 
             if (Teacher_online==true) {
 
@@ -81,9 +80,6 @@ public class Directory extends AppCompatActivity {
                     return true;
                 }
 
-            } else if (itemId == R.id.nav_leaderboard) {
-                loadFragment(leaderBoardFragment);
-                return true;
             } else if (itemId == R.id.nav_classroom) {
                 if (Teacher_online==true) {
                     loadFragment(teacher_classroomFragment);

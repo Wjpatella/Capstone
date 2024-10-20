@@ -3,6 +3,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:id="@+id/top_of_profilepage"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     >
 
@@ -15,6 +16,7 @@
         android:layout_marginEnd="142dp"
         android:layout_marginBottom="418dp"
         android:text="Profile fragment"
+        android:visibility="invisible"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
@@ -26,7 +28,7 @@
         android:layout_height="182dp"
         android:layout_marginStart="16dp"
         android:layout_marginEnd="21dp"
-        android:visibility="gone"
+        android:visibility="visible"
         app:layout_constraintEnd_toStartOf="@+id/profile_linearlayout"
         app:layout_constraintStart_toStartOf="parent"
         app:srcCompat="@drawable/owl_teacher"
@@ -44,20 +46,21 @@
         app:srcCompat="@drawable/penguin_student"
         tools:layout_editor_absoluteY="32dp" />
 
+
     <LinearLayout
         android:id="@+id/profile_linearlayout"
         android:layout_width="228dp"
-        android:layout_height="316dp"
+        android:layout_height="100dp"
         android:layout_marginTop="20dp"
         android:layout_marginEnd="120dp"
         android:layout_marginBottom="399dp"
         android:orientation="vertical"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.425"
+        app:layout_constraintHorizontal_bias="0.424"
         app:layout_constraintStart_toEndOf="@+id/leaderboard_textview"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="1.0">
+        app:layout_constraintVertical_bias="0.117">
 
         <!-- teacher text-->
         <TextView
@@ -80,11 +83,107 @@
             android:text=""
             android:textAlignment="center"
             android:textSize="34dp"
-            android:visibility="gone"
+            android:visibility="visible"
             tools:layout_editor_absoluteX="175dp"
             tools:layout_editor_absoluteY="126dp" />
+
+        <!-- student score text-->
+        <TextView
+            android:id="@+id/teacherTextView"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:text="Teacher: "
+            android:textAlignment="center"
+            android:visibility="visible"
+            tools:layout_editor_absoluteX="175dp"
+            tools:layout_editor_absoluteY="126dp" />
+        <!-- student score text-->
+        <TextView
+            android:id="@+id/textViewLastScore"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:text="Last Score: "
+            android:textAlignment="center"
+            android:visibility="visible"
+            tools:layout_editor_absoluteX="175dp"
+            tools:layout_editor_absoluteY="126dp" />
+
         <!-- student text-->
 
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/LeaderboardLayout"
+        android:layout_width="350dp"
+        android:layout_height="500dp"
+        android:layout_gravity="center"
+        android:layout_marginStart="30dp"
+        android:layout_marginTop="100dp"
+        android:layout_marginEnd="31dp"
+        android:layout_marginBottom="31dp"
+        android:orientation="vertical"
+        android:padding="16dp"
+        app:flow_verticalAlign="center"
+        android:background="@drawable/border"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="@id/top_of_profilepage">
+
+        <!-- Leaderboard Title -->
+
+        <TextView
+            android:id="@+id/leaderboard_name_title"
+            android:layout_width="match_parent"
+            android:layout_height="36dp"
+            android:layout_gravity="center"
+            android:layout_marginBottom="10dp"
+            android:gravity="center"
+            android:text="Leaderboard"
+
+            android:textSize="18sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/select_class_title"
+            android:layout_width="match_parent"
+            android:layout_height="20dp"
+            android:layout_gravity="center"
+            android:gravity="center"
+            android:text="*Select Class*"
+
+            android:textSize="13sp"
+
+            android:textStyle="italic"
+            android:visibility="visible" />
+
+        <!-- Spinner for when the teacher is online -->
+        <Spinner
+            android:id="@+id/teacher_class_spinner"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:layout_marginTop="8dp"
+            android:layout_marginBottom="8dp"
+            android:visibility="visible" />
+        <!-- ScrollView for the leaderboard table -->
+        <ScrollView
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:background="@drawable/border"
+            >
+
+            <!-- TableLayout for Leaderboard -->
+            <TableLayout
+                android:id="@+id/leaderboard_table"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:stretchColumns="1" />
+        </ScrollView>
 
     </LinearLayout>
 

@@ -12,13 +12,23 @@
     </string-array>
 
     <string-array name="mode_options">
-        <item>Normal Classroom mode</item>
         <item>Team Classroom mode</item>
     </string-array>
 
     <string-array name="topic_options">
         <item>Animals</item>
         <item>Verbs</item>
+    </string-array>
+
+    <string-array name="round_options">
+        <item>1</item>
+        <item>2</item>
+        <item>3</item>
+        <item>4</item>
+        <item>5</item>
+        <item>6</item>
+        <item>7</item>
+        <item>8</item>
     </string-array>
 
 </resources>

@@ -153,6 +153,33 @@ public class ClassroomFragment extends Fragment {
         return view;
     }
 
+    @Override
+    public void onResume() {
+        super.onResume();
+        // Call getTeacherActiveGameStatus every time the fragment becomes visible
+        getTeacherActiveGameStatus();
+    }
+
+    private void getTeacherActiveGameStatus() {//Checks Teachers active game
+        db.collection("teachers").document(Online_user_id)
+                .get()
+                .addOnSuccessListener(documentSnapshot -> {
+                    if (documentSnapshot.exists()) {
+                        String activeGameStatus =  documentSnapshot.getString("activeGame");
+                        if (activeGameStatus != null) {
+                            GameActive = true;
+                            Log.d("ClassroomFragment", "Game is active");
+                        }
+                        else{
+                            GameActive = false;
+                            Log.d("ClassroomFragment", "Game is not active");
+                        }
+                    }
+                })
+                .addOnFailureListener(e -> Log.e("StudentClassroomFragment", "Error getting teacher data in method getsStudentsClassName", e));
+    }
+
+
     private void loadClasses(String selectedClass) {//method for loading classes and populating the spinner
 
         /*Once a classroom is created, show the buttons
@@ -266,17 +293,27 @@ public class ClassroomFragment extends Fragment {
 
                         builder.setPositiveButton("Create", (dialog, id) -> {
                             String newTeamName = teamNameInput.getText().toString();//Get the team name from the input
-                            if (newTeamName.isEmpty()) {//ensure team name is not empty
+                            if (newTeamName.isEmpty()) {  // Ensure team name is not empty
                                 Toast.makeText(getContext(), "Please enter a team name.", Toast.LENGTH_SHORT).show();
                             } else {
-                                List<Student> selectedStudentsForTeam = teamSelectionAdapter.getSelectedStudents(); //Get the List<Student> directly
+                                // Check for invalid characters in the team name
+                                Set<Character> invalidChars = new HashSet<>(Arrays.asList('.', '/', '*', '[', ']', '~', '#', '\0'));
+                                for (char c : newTeamName.toCharArray()) {
+                                    if (invalidChars.contains(c)) {  // Check if team name contains invalid characters
+                                        Log.d("CreateTeamDialog", "Invalid characters in team name.");
+                                        Toast.makeText(getContext(), "Team name cannot contain: . / * [ ] ~ # \\0", Toast.LENGTH_LONG).show();
+                                        return;  // Prevent team creation
+                                    }
+                                }
 
-                                //Check if any selected students are already in another team
+                                List<Student> selectedStudentsForTeam = teamSelectionAdapter.getSelectedStudents();  // Get the selected students
+
+                                // Check if any selected students are already in another team
                                 for (Student student : selectedStudentsForTeam) {
                                     if (studentTeamMap.containsKey(student.getName())) {
                                         String currentTeam = studentTeamMap.get(student.getName());
                                         Toast.makeText(getContext(), student.getName() + " is already in team " + currentTeam, Toast.LENGTH_LONG).show();
-                                        return; //Prevent team creation
+                                        return;  // Prevent team creation
                                     }
                                 }
 
@@ -1161,6 +1198,7 @@ public class ClassroomFragment extends Fragment {
                 })
                 .addOnFailureListener(e -> Log.e("ClassroomFragment", "Error fetching teacher's data.", e));
     }
+
 
     private void showNoClassesDialog() {//prevents error if no classes exist for teacher
         new AlertDialog.Builder(getActivity()) //Use 'this' if in Activity; replace with 'getActivity()' in Fragment

@@ -12,8 +12,4 @@
         android:id="@+id/nav_classroom"
         android:icon="@drawable/baseline_backpack_24"
         android:title="Classroom" />
-    <item
-        android:id="@+id/nav_leaderboard"
-        android:icon="@drawable/baseline_density_small_24"
-        android:title="Leaderboard" />
 </menu>

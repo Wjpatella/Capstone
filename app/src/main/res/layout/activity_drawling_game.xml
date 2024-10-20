@@ -13,15 +13,18 @@
 
         android:paddingBottom="10dp">
 
-        <!-- Timer display -->
+        <!-- Timer text display -->
         <TextView
             android:id="@+id/timerTextView"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Time Left: 60"
+            android:text="Time Left:"
             android:textSize="18sp"
-            android:layout_marginRight="10dp"
+            android:layout_marginRight="30dp"
             android:textColor="@android:color/holo_red_dark"/>
+
+
+
 
         <!-- Current score display -->
         <TextView
@@ -31,6 +34,62 @@
             android:text="Score: 0"
             android:textSize="18sp"
             android:textColor="@android:color/holo_green_dark"/>
+
+        <!-- Current round text display -->
+        <TextView
+            android:id="@+id/roundTextView"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text=""
+            android:paddingLeft="60dp"
+            android:textColor="@android:color/black"
+            android:textSize="18sp" />
+
+
+
+    </LinearLayout>
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+
+        android:paddingBottom="10dp">
+
+        <!-- Drawer text display -->
+        <TextView
+            android:id="@+id/drawerTextView"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Drawer: "
+            android:textColor="@android:color/black"
+            android:textSize="18sp" />
+        <!-- Drawer text -->
+        <TextView
+            android:id="@+id/drawerNameTextView"
+            android:layout_width="141dp"
+            android:layout_height="wrap_content"
+            android:paddingEnd="3dp"
+            android:textColor="@android:color/black"
+            android:textSize="16sp" />
+        <!-- Topic text -->
+
+
+        <TextView
+            android:id="@+id/topicTextView"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Topic: "
+            android:textColor="@android:color/black"
+            android:textSize="18sp" />
+        <!-- Topic-->
+        <TextView
+            android:id="@+id/topicView"
+            android:layout_width="119dp"
+            android:layout_height="wrap_content"
+
+            android:textColor="@android:color/black"
+            android:textSize="16sp" />
+
     </LinearLayout>
 
     <!-- Vocab word display (only visible to the drawer) -->
@@ -38,56 +97,51 @@
         android:id="@+id/vocabWordTextView"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Vocab Word"
-        android:textSize="24sp"
         android:gravity="center"
+        android:textSize="28sp"
+        android:visibility="visible"
+        android:textStyle="bold"
+        android:paddingBottom="8dp"
+        android:textColor="@android:color/black"
+        />
+
+    <ProgressBar
+        android:id="@+id/progressBar"
+        style="?android:attr/progressBarStyleHorizontal"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_centerInParent="true"
         android:visibility="gone" />
 
     <!-- Drawing area -->
+
+    <!-- Guess area -->
     <com.example.capstone.DrawingView
         android:id="@+id/drawingView"
         android:layout_width="match_parent"
-        android:layout_height="300dp"
+        android:layout_height="510dp"
         android:background="@android:color/darker_gray" />
 
-    <!-- Guess area -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="vertical">
+        android:orientation="horizontal">
+
 
         <!-- Past guesses scrollable area -->
-        <ScrollView
-            android:layout_width="match_parent"
-            android:layout_height="100dp"
-            android:background="@android:color/white"
-            android:layout_marginTop="10dp"
-            android:layout_marginBottom="10dp">
-
-            <TextView
-                android:id="@+id/guessHistoryTextView"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="Past guesses: "
-                android:padding="10dp" />
-        </ScrollView>
 
         <!-- Input for guessing -->
-        <EditText
-            android:id="@+id/guessEditText"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:hint="Enter your guess"
-            android:imeOptions="actionDone"
-            android:inputType="text"/>
 
         <!-- Submit guess button -->
-        <Button
-            android:id="@+id/submitGuessButton"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Submit Guess"
-            android:layout_marginTop="10dp" />
     </LinearLayout>
+
+
+
+    <Button
+        android:id="@+id/guessButton"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="10dp"
+        android:text="I know this word!" />
 
 </LinearLayout>
