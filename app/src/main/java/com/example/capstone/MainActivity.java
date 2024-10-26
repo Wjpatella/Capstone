@@ -3,15 +3,15 @@ package com.example.capstone;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
-
+import android.widget.Toast;
+import android.content.Context;
+import android.net.ConnectivityManager;
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.graphics.Insets;
-import androidx.core.view.ViewCompat;
-import androidx.core.view.WindowInsetsCompat;
+import android.net.NetworkInfo;
 
 import com.google.firebase.FirebaseApp;
-import com.google.firebase.firestore.FirebaseFirestore;
+
 
 public class MainActivity extends AppCompatActivity {
     @Override
@@ -22,20 +22,38 @@ public class MainActivity extends AppCompatActivity {
 
         FirebaseApp.initializeApp(this);//Initializes Firebase
 
-        /*ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {//Sets listener for the main view and react when area covered by system bar changes
-            Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
-            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);//Sets padding to the view and system bars
-            return insets;
-        });
-         */
+        if (!isNetworkAvailable()) {
+            Toast.makeText(this, "No internet connection. Please check your connection.", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "インターネットに接続できません。接続を確認してください。", Toast.LENGTH_SHORT).show();
+        }
     }
-        public void goto_LoginActivity (View view){//Method to navigate to LoginActivity
+
+    //Method to check if the device has an active network connection
+    private boolean isNetworkAvailable() {
+        ConnectivityManager connectivityManager = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
+        NetworkInfo activeNetworkInfo = connectivityManager.getActiveNetworkInfo();
+        return activeNetworkInfo != null && activeNetworkInfo.isConnected();
+    }
+
+    //Method to navigate to LoginActivity
+        public void goto_LoginActivity (View view){
+        if (isNetworkAvailable()) {
             Intent intent = new Intent(this, LoginActivity.class);
             startActivity(intent);
+        }else{
+            Toast.makeText(this, "No internet connection. Please check your connection.", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "インターネットに接続できません。接続を確認してください。", Toast.LENGTH_SHORT).show();
         }
+        }
+    //Method to navigate to ActivityRegister
         public void goto_ActivityRegister (View view){//Method to navigate to ActivityRegister
+        if (isNetworkAvailable()) {
             Intent intent = new Intent(this, ActivityRegister.class);
             startActivity(intent);
+        } else {
+            Toast.makeText(this, "No internet connection. Please check your connection.", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "インターネットに接続できません。接続を確認してください。", Toast.LENGTH_SHORT).show();
+        }
 
     }
 }

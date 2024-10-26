@@ -39,12 +39,11 @@ public class FS_DBHelper {
     }
 
     //For help Adding teachers to database
-    public static void addTeacher(String name, String teacher_password, String user_email, Map<String, ArrayList<String>> classes, String activeGame, Map<String, ArrayList<String>> class_teams) {
+    public static void addTeacher(String name, String teacher_password, Map<String, ArrayList<String>> classes, String activeGame, Map<String, ArrayList<String>> class_teams) {
         Map<String, Object> teacher = new HashMap<>();
         //Columns
         teacher.put("name", name);
         teacher.put("teacher_password", teacher_password);
-        teacher.put("user_email", user_email);
         teacher.put("classes", classes);
         teacher.put("activeGame", activeGame);
         teacher.put("class_teams", class_teams);
@@ -153,7 +152,7 @@ public class FS_DBHelper {
                 DocumentSnapshot teacher_id = task_fetch_teacher_data.getResult();
                 if (teacher_id != null) {
                     String teacher_name = teacher_id.getString("name");
-                    //String teacher_email = teacher_id.getString("email");
+
 
                     // Trigger the callback with values
                     if (fetch_teacher_data_callback != null) {

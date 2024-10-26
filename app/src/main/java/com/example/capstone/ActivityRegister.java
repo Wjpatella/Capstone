@@ -16,6 +16,7 @@ import com.google.firebase.firestore.QuerySnapshot;
 
 
 import android.widget.Spinner;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
@@ -30,13 +31,15 @@ public class ActivityRegister extends MainActivity {
     //Teacher Data
     private EditText teacher_Name;
     private EditText teacher_Password;
-    private EditText teacher_Email;
+
     //Teacher Data
 
     //Student Data
     private EditText student_info_layout;
     private EditText student_Name;
     private EditText student_Password;
+
+    private TextView select_teacher_title;
     //Student Data
 
     private LinearLayout teacherInfoLayout;
@@ -86,10 +89,12 @@ public class ActivityRegister extends MainActivity {
 
         teacher_Name = findViewById(R.id.Teacher_name);
         teacher_Password = findViewById(R.id.Teacher_password);
-        teacher_Email = findViewById(R.id.Teacher_email);
+
 
         student_Name = findViewById(R.id.Student_name);
         student_Password = findViewById(R.id.Student_password);
+        select_teacher_title = findViewById(R.id.select_teacher_textView2);
+
         teachersSpinner = findViewById(R.id.teachersSpinner);
 
         teacherList = new ArrayList<>();
@@ -114,7 +119,7 @@ public class ActivityRegister extends MainActivity {
             @Override
             public void onClick(View v) {
 
-                if (teacherCheckBox.isChecked() && !teacher_Name.getText().toString().isEmpty() && !teacher_Password.getText().toString().isEmpty() && !teacher_Email.getText().toString().isEmpty()) {
+                if (teacherCheckBox.isChecked() && !teacher_Name.getText().toString().isEmpty() && !teacher_Password.getText().toString().isEmpty() ) {
                     String teacherName = teacher_Name.getText().toString();
 
                     cloud_fs_db.collection("teachers").document(teacherName).get().addOnCompleteListener(task_check_if_Tname_taken ->{//check if the teacher name is already taken
@@ -125,9 +130,9 @@ public class ActivityRegister extends MainActivity {
                         else {
                             
                             String teacherPassword = teacher_Password.getText().toString();
-                            String teacherEmail = teacher_Email.getText().toString();
 
-                            FS_DBHelper.addTeacher(teacherName, teacherPassword, teacherEmail, null, null,null); //Calls the FS_DBHelper to add the teacher to the Cloudstore firebase
+
+                            FS_DBHelper.addTeacher(teacherName, teacherPassword, null, null,null); //Calls the FS_DBHelper to add the teacher to the Cloudstore firebase
                             goto_login_activity();
                         }
                     });

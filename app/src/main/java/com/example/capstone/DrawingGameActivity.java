@@ -1648,18 +1648,18 @@ public class DrawingGameActivity extends AppCompatActivity {
 
     //Calculates and updates score for the guesser who guessed correctly
     private void saveScore(String guesserId) {
-        int minScore = 10;
-        int maxScore = 100;
+        int minPoints = 10;
+        int maxPoints  = 100;
 
         //Calculate percentage of remaining time
         double timePercentage = (double) remainingTime / (double) roundtime;
 
         //Score given is scaled off how much remaining time is left. Less time lower score, more time higher score
-        int rewardedPoints = (int) (timePercentage * (maxScore - minScore) + minScore);
+        int rewardedPoints = (int) (timePercentage * (maxPoints  - minPoints) + minPoints);
 
         //Update score in Firestore
         firestore.collection("students").document(guesserId)
-                .update("score", FieldValue.increment(rewardedPoints)) // Increment the score by 100
+                .update("score", FieldValue.increment(rewardedPoints)) // add the rewarded points to the users score
                 .addOnSuccessListener(aVoid -> {
                     //Log success
                     Log.d(TAG, "Score updated successfully for student: " + Online_user_id);
