@@ -1,8 +1,8 @@
 <resources>
     <string name="app_name">Capstone</string>
-    <string name="register_or_login">Register or Login</string>
-    <string name="login">Login</string>
-    <string name="register">Register</string>
+    <string name="register_or_login">Register or Login\n 登録またはログイン</string>
+    <string name="login">Login\nログイン</string>
+    <string name="register">Register\n登録</string>
 
     <string-array name="timer_options">
         <item>30</item>

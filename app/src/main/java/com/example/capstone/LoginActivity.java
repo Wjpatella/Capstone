@@ -15,7 +15,6 @@ import com.google.firebase.firestore.FirebaseFirestore;
 
 public class LoginActivity extends AppCompatActivity {
 
-    private FirebaseFirestore cloud_fs_db;
 
     private EditText Username_input;
 
@@ -29,8 +28,6 @@ public class LoginActivity extends AppCompatActivity {
         EdgeToEdge.enable(this);
         setContentView(R.layout.activity_login);
 
-
-        cloud_fs_db = FirebaseFirestore.getInstance();//Initialize firebase
 
         Username_input = findViewById(R.id.username_input);
         Password_input = findViewById(R.id.password_input);
@@ -47,7 +44,8 @@ public class LoginActivity extends AppCompatActivity {
             String password = Password_input.getText().toString().trim();//convert to string
 
         if (username.isEmpty() || password.isEmpty()) {//checks to make sure all fields are filled
-            Toast.makeText(LoginActivity.this, "Please enter all the fields", Toast.LENGTH_SHORT).show();
+            Toast.makeText(LoginActivity.this, "Please enter all the fields.", Toast.LENGTH_SHORT).show();
+            Toast.makeText(LoginActivity.this, "すべての項目を入力してください。", Toast.LENGTH_SHORT).show();
         } else {
 
             FS_DBHelper.Student_online=false;//reset the online status
@@ -57,7 +55,8 @@ public class LoginActivity extends AppCompatActivity {
             FS_DBHelper.checkUsers(username, password, new FS_DBHelper.OnUserCheckCompleteListener() {
                 @Override
                 public void onSuccess() {
-                    Toast.makeText(LoginActivity.this, "Login successful", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(LoginActivity.this, "Login successful.", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(LoginActivity.this, "ログインに成功しました。", Toast.LENGTH_SHORT).show();
                     //go to directory   go_to_directory(v);
                     Intent intent = new Intent(LoginActivity.this, Directory.class);
                     startActivity(intent);
@@ -66,7 +65,8 @@ public class LoginActivity extends AppCompatActivity {
                 @Override
                 public void onFailure() {
                     // Handle failed login
-                    Toast.makeText(LoginActivity.this, "Login failed", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(LoginActivity.this, "Login failed.", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(LoginActivity.this, "ログインに失敗しました。", Toast.LENGTH_SHORT).show();
                     }
 
                     });

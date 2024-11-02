@@ -89,7 +89,7 @@
                 android:text="Create A Class"
                 android:textAllCaps="true"
 
-                android:textColor="#FBE202" />
+                android:textColor="#FFFFFF" />
 
             <!-- Icon for add student action -->
             <ImageButton
@@ -131,6 +131,7 @@
             android:layout_height="wrap_content"
             android:paddingBottom="8dp"
             android:text="Teams"
+            android:textColor="@color/black"
             android:textSize="16sp"
             android:textStyle="bold" />
 

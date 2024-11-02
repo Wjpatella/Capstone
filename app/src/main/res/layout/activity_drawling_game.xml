@@ -3,24 +3,26 @@
     android:layout_height="match_parent"
     android:orientation="vertical"
     android:id="@+id/fragment_student_game"
-    android:padding="16dp">
+    android:padding="5dp">
 
     <!-- Timer and Score -->
     <LinearLayout
+        android:layout_marginBottom="5dp"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
-
-        android:paddingBottom="10dp">
+        android:background="@drawable/border"
+        android:paddingBottom="5dp"
+        >
 
         <!-- Timer text display -->
         <TextView
             android:id="@+id/timerTextView"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Time Left:"
+            android:text="Time (時):"
             android:textSize="18sp"
-            android:layout_marginRight="30dp"
+            android:layout_marginRight="20dp"
             android:textColor="@android:color/holo_red_dark"/>
 
 
@@ -31,19 +33,12 @@
             android:id="@+id/scoreTextView"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Score: 0"
+            android:text="Score (点): 0"
             android:textSize="18sp"
+            android:paddingLeft="60dp"
             android:textColor="@android:color/holo_green_dark"/>
 
-        <!-- Current round text display -->
-        <TextView
-            android:id="@+id/roundTextView"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text=""
-            android:paddingLeft="60dp"
-            android:textColor="@android:color/black"
-            android:textSize="18sp" />
+
 
 
 
@@ -52,58 +47,81 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
-
-        android:paddingBottom="10dp">
+        android:background="@drawable/border"
+        android:paddingBottom="5dp">
 
         <!-- Drawer text display -->
         <TextView
             android:id="@+id/drawerTextView"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Drawer: "
+            android:text="Drawer (かきて): "
             android:textColor="@android:color/black"
-            android:textSize="18sp" />
+            android:textSize="14sp" />
         <!-- Drawer text -->
         <TextView
             android:id="@+id/drawerNameTextView"
-            android:layout_width="141dp"
+            android:layout_width="112dp"
             android:layout_height="wrap_content"
             android:paddingEnd="3dp"
             android:textColor="@android:color/black"
             android:textSize="16sp" />
-        <!-- Topic text -->
 
-
+        <!-- Current round text display -->
         <TextView
-            android:id="@+id/topicTextView"
-            android:layout_width="wrap_content"
+            android:id="@+id/roundTextView"
+            android:layout_width="163dp"
             android:layout_height="wrap_content"
-            android:text="Topic: "
-            android:textColor="@android:color/black"
-            android:textSize="18sp" />
-        <!-- Topic-->
-        <TextView
-            android:id="@+id/topicView"
-            android:layout_width="119dp"
-            android:layout_height="wrap_content"
-
+            android:paddingLeft="10dp"
+            android:text=""
             android:textColor="@android:color/black"
             android:textSize="16sp" />
+
+
 
     </LinearLayout>
 
     <!-- Vocab word display (only visible to the drawer) -->
-    <TextView
-        android:id="@+id/vocabWordTextView"
+
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:gravity="center"
-        android:textSize="28sp"
-        android:visibility="visible"
-        android:textStyle="bold"
+        android:orientation="vertical"
+        android:layout_marginTop="5dp"
         android:paddingBottom="8dp"
-        android:textColor="@android:color/black"
-        />
+        android:gravity="center"
+        android:background="@drawable/border">
+
+        <TextView
+            android:id="@+id/topicView"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Topic (トピック):"
+            android:textColor="@android:color/black"
+            android:textSize="14sp" />
+
+        <ScrollView
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+            android:fadeScrollbars="false"
+            android:scrollbars="vertical"
+            android:gravity="center"
+            android:textAlignment="center"
+            android:fillViewport="true">
+
+        <TextView
+            android:id="@+id/vocabWordTextView"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:textAlignment="center"
+            android:textSize="28sp"
+            android:visibility="visible"
+            android:textStyle="bold"
+            android:textColor="@android:color/black"/>
+        </ScrollView>
+    </LinearLayout>
+
 
     <ProgressBar
         android:id="@+id/progressBar"
@@ -119,8 +137,9 @@
     <com.example.capstone.DrawingView
         android:id="@+id/drawingView"
         android:layout_width="match_parent"
-        android:layout_height="510dp"
-        android:background="@android:color/darker_gray" />
+        android:layout_height="500dp"
+        android:layout_marginTop="5dp"
+        android:background="@drawable/notebook_paper_draw_surface" />
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -136,12 +155,12 @@
     </LinearLayout>
 
 
-
     <Button
         android:id="@+id/guessButton"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="10dp"
-        android:text="I know this word!" />
+        android:layout_height="63dp"
+        android:layout_marginTop="0dp"
+        android:text="I know the word!\n  私は単語をしります！"
+        android:textSize="16dp" />
 
 </LinearLayout>

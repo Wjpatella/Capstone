@@ -17,10 +17,13 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.ImageButton;
 import android.widget.ListView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
+import android.speech.tts.TextToSpeech;
+import java.util.Locale;
 
 
 import com.google.firebase.database.ChildEventListener;
@@ -49,7 +52,6 @@ import java.util.Set;
 
 public class DrawingGameActivity extends AppCompatActivity {
     private static final String TAG = "DrawingGameActivity";
-    public static String getGameId;
 
     private DrawingView drawingView;
     private TextView vocabWordTextView, timerTextView, scoreTextView, roundTextView, roundView, drawerTextView, drawerNameTextView, topicTextView, topicView;
@@ -68,8 +70,6 @@ public class DrawingGameActivity extends AppCompatActivity {
     private FirebaseDatabase database;
     private DatabaseReference vocabularyWordRef;
 
-    private DatabaseReference japaneseMeaningRef;
-
     private DatabaseReference strokesRef;
     private String gameId;
     private String mode;
@@ -78,43 +78,22 @@ public class DrawingGameActivity extends AppCompatActivity {
     private List<String> userTeammates;
     private String selectedTopic;
     private String teacherName;
-    private String currentDrawerId;
-
+    private TextToSpeech textToSpeech;
     private String currentDrawer;
     private String correctWord;
-    //private int currentTeamScore = 0;
-
-    private Map<String, List<String>> currentGuessersMap = new HashMap<>();
-
-    private Map<String, Integer> teamScores = new HashMap<>(); // Map to track scores for each team
     private int selectedRound;
 
     private boolean userIsDrawer;
 
-    private int currentRound = 0;
-
-    //private int currentTeam = 0; // 0 for Team A, 1 for Team B
-
     private int remainingTime;
-    private int currentTeamScore = 0;
-
-    private int currentTeamIndex = 0; // Index of the current team
 
     private int roundtime; //Class variable for round time
     private Handler timerHandler;
     private Runnable timerRunnable;
 
-    //private List<String> studentNames = new ArrayList<>();
-
     private List<String> userTeammatesDrawerRemoved = new ArrayList<>();
 
     private List<VocabularyItem> randomizedWords = new ArrayList<>(); // To store randomized words
-    private List<VocabularyItem> vocabWordsList;
-    private VocabularyItem correctWordItem;
-
-    //private boolean wordGuessed = false;
-
-    private Map<String, String> currentDrawerMap = new HashMap<>();
 
     private Map<String, String> studentTeamMap = new HashMap<>();
 
@@ -148,7 +127,7 @@ public class DrawingGameActivity extends AppCompatActivity {
         drawerTextView = findViewById(R.id.drawerTextView);
         drawerNameTextView = findViewById(R.id.drawerNameTextView);
         progressBar = findViewById(R.id.progressBar);
-        topicTextView = findViewById(R.id.topicTextView);
+        //topicTextView = findViewById(R.id.topicTextView);
         topicView = findViewById(R.id.topicView);
 
 
@@ -194,6 +173,16 @@ public class DrawingGameActivity extends AppCompatActivity {
 
                             selectedRound = Integer.parseInt(documentSnapshot.getString("rounds"));
 
+                            //Initialize text to speech
+                            textToSpeech = new TextToSpeech(this, status -> {
+                                if (status == TextToSpeech.SUCCESS) {
+                                    Log.d("TTS", "Initialization status: " + status);
+                                    textToSpeech.setLanguage(Locale.ENGLISH);
+                                } else {
+                                    Log.e("TTS", "Initialization failed");
+                                }
+                            });
+
                             // Set up game details
                             setupGame(selectedTopic, teacherName, selectedClass);
 
@@ -224,6 +213,7 @@ public class DrawingGameActivity extends AppCompatActivity {
     public void onBackPressed() {
         // Prevent the back button from exiting the activity
         Toast.makeText(this, "You cannot exit the game at this stage.", Toast.LENGTH_SHORT).show();
+        Toast.makeText(this, "ゲームがあってます。出かけしてはいけません。", Toast.LENGTH_SHORT).show();
     }
 
     //For loading animation
@@ -253,7 +243,7 @@ public class DrawingGameActivity extends AppCompatActivity {
     }
 
     private void setupGame(String selectedTopic, String teacherName, String selectedClass) {
-        topicView.setText(selectedTopic);// Show selected topic in the UI
+        topicView.setText("Topic (トピック): " + selectedTopic);// Show selected topic in the UI
         // Fetch teams from Firestore
         getScore(Online_user_id);
         fetchTeams(selectedTopic ,teacherName, selectedClass, gameId);
@@ -398,9 +388,9 @@ public class DrawingGameActivity extends AppCompatActivity {
                     });
         }
 
-        builder.setTitle("Tell the Drawer Your Guess!")
-                .setMessage("I think the word is...")
-                .setPositiveButton("Done", (dialog, which) -> {
+        builder.setTitle("Tell the drawer Your guess!\n推測を引き出しに伝えてください！")
+                .setMessage("I think the word is...\n「その言葉は...」")
+                .setPositiveButton("Done (ずみ)", (dialog, which) -> {
                     // Disable the guess button when done
                     guessButton.setEnabled(false);
                     dialog.dismiss(); // Dismiss the dialog after pressing Done
@@ -593,7 +583,7 @@ public class DrawingGameActivity extends AppCompatActivity {
         // Logic to pause the timer and drawing
         Log.d("GameStatus", "Game is paused for a guess.");
         // Pause the timer (You may need to implement this)
-        timerTextView.setText("Paused");  // Update the UI to reflect that the game is paused
+        timerTextView.setText("Paused (ポーズ)");  //Update the UI to reflect that the game is paused
         // Disable drawing while the game is paused
         drawingView.setDrawingEnabled(false);
     }
@@ -602,43 +592,48 @@ public class DrawingGameActivity extends AppCompatActivity {
         // Check if the activity is valid (not destroyed or finishing) to prevent a crash
         if (isFinishing() || isDestroyed()) {
             Log.e("DialogError", "Activity is not in a valid state to show dialog.");
-            return;  // Do not proceed with showing the dialog
+            return;
         }
 
-        // Show a dialog to the drawer with the guess from the guesser
+        // Inflate custom dialog layout
+        LayoutInflater inflater = getLayoutInflater();
+        View dialog_guess_receivedView = inflater.inflate(R.layout.dialog_guess_received, null);
+        TextView guessMessageTextView = dialog_guess_receivedView.findViewById(R.id.guessMessageTextView);
+        TextView guessMassageTextView2 = dialog_guess_receivedView.findViewById(R.id.guessMessageTextView2);
+        Button readAloudButtonForD = dialog_guess_receivedView.findViewById(R.id.readAloudButton);
+        readAloudButtonForD.setText(vocabWordTextView.getText().toString());
+
+
+        // Set message and button action
+        guessMessageTextView.setText("Player " + guesserId + " wants to guess the word. Let " + guesserId + " tell you their guess.\n\n"
+                + guesserId + "さんはその単語を当てようとしている。" + guesserId + " さんはその単語を言わなければなりません。\n");
+        guessMassageTextView2.setText("Have your audio on and place you phone near your ear. Click the black button to hear your selected word. Compare what you hear to what the guesser says. Don't let your team hear the audio.\n\n"
+                + "オーディオをオンにし、携帯電話を耳に近づけます。選択した単語を聞くには、黒いボタンをクリックします。あなたが選んだ単語と推測者が言った単語を比較します。チームには音声を聞かせないでください。");
+        readAloudButtonForD.setOnClickListener(v -> {
+            String textToRead = correctWord;//English word with no jp meaning attached
+            //String textToRead = vocabWordTextView.getText().toString();
+            textToSpeech.speak(textToRead, TextToSpeech.QUEUE_FLUSH, null, null);
+        });
+
+        // Build and display the dialog
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        builder.setTitle("New Guess Received!")
-                .setMessage("Player " + guesserId + " wants to guess the word.")
-                .setPositiveButton("Correct", (dialog, which) -> {
-                    // Update the score for the guesser
-                    saveScore(guesserId);  // User is rewarded points for the correct guess
-                    //Log.d("Time", String.valueOf(remainingTime));
-                   // showWordToGuessers();
-
-                    // Proceed to the next round on correct guess
+        builder.setView(dialog_guess_receivedView)
+                .setPositiveButton("Correct (正解)", (dialog, which) -> {
+                    saveScore(guesserId);
                     updateRound();
-
-                    // Handle guess result after the round update
-                    handleGuessResult(guesserId);  // Ensure guess is handled only once
-
-                    //Reset round timer and get the current round
-                    //remainingTime = 0;
+                    handleGuessResult(guesserId);
                     getCurrentRound();
                 })
-                .setNegativeButton("Wrong", (dialog, which) -> {
+                .setNegativeButton("Wrong (不正解)", (dialog, which) -> {
                     dialog.dismiss();
-                    // Even if the guess was wrong, handle the guesser removal
-                    handleGuessResult(guesserId);  // Ensure guess is handled only once
-
-                    // Resume the game if the guess is wrong
+                    handleGuessResult(guesserId);
                     resumeGame();
                 })
-                .setCancelable(false);  // Prevent dialog from being canceled by the back button
+                .setCancelable(false);
 
         AlertDialog dialog = builder.create();
-        dialog.setCanceledOnTouchOutside(false);  // Can't dismiss the dialog by tapping outside
+        dialog.setCanceledOnTouchOutside(false);
 
-        // Show the dialog only if the activity is in a valid state to prevent a crash
         if (!isFinishing() && !isDestroyed()) {
             dialog.show();
         } else {
@@ -692,7 +687,7 @@ public class DrawingGameActivity extends AppCompatActivity {
                         if (documentSnapshot.contains("score")) {
                             //Retrieve the score value
                             Integer score = documentSnapshot.getLong("score").intValue(); // Get as long then convert to int
-                            scoreTextView.setText("Score: " + score);
+                            scoreTextView.setText("Score (点): " + score);
 
                             Log.d("Score", "Score for guesser " + studentId + ": " + score);
 
@@ -735,15 +730,20 @@ public class DrawingGameActivity extends AppCompatActivity {
         if (!Online_user_id.equals(currentDrawer)) {
             guessButton.setEnabled(false);
             listenForWordInFirestore();
+            //showGuesserWordDialog();
             startLoadingAnimation();
             //Use a Handler to start delay
+
             new Handler(Looper.getMainLooper()).postDelayed(() -> {
                 //Remove the loading view after the delay
                 //((ViewGroup) findViewById(android.R.id.content)).removeView(loadingView);
-                stopLoadingAnimation();
-                restartGameState();
+
+                showGuesserWordDialog();
+                //stopLoadingAnimation();
                 //restartGameState();
-            }, 8000);//delay to make sure guesser is behind in terms of time and lest guesser have time to comprehend the vocabulary word
+
+                //restartGameState();
+            }, 2000);//delay to make sure guesser is behind in terms of time and lest guesser have time to comprehend the vocabulary word
 
             //restartGameState();
         }
@@ -756,17 +756,52 @@ public class DrawingGameActivity extends AppCompatActivity {
             //String noWord = "";
             //updateWordInFireStore(noWord);//clear word in firestore
 
-            // Select a new drawer asynchronously
+            // Select a new drawer
             selectNewDrawer();
             resetTimerInDB();
             remainingTime = roundtime;//reassures time is reset
             stopLoadingAnimation();
             restartGameState(); // Restart the whole activity
 
-            }, 3000);
+            }, 1000);
         }
 
     }
+
+    private void showGuesserWordDialog(){
+    // Check if the activity is valid (not destroyed or finishing) to prevent a crash
+        if (isFinishing() || isDestroyed()) {
+            Log.e("DialogError", "Activity is not in a valid state to show dialog.");
+            return;
+        }
+
+        // Inflate custom dialog layout
+        LayoutInflater inflater = getLayoutInflater();
+        View dialog_show_guessers_wordView = inflater.inflate(R.layout.dialog_show_guesser_word, null);
+
+        Button readAloudButtonForGuesser = dialog_show_guessers_wordView.findViewById(R.id.readAloudButtonForGuesser);
+
+        readAloudButtonForGuesser.setText(vocabWordTextView.getText().toString());
+
+        readAloudButtonForGuesser.setOnClickListener(v -> {
+            String textToReadForGuesser = vocabWordTextView.getText().toString();
+            if (textToReadForGuesser.contains("(")) {
+                textToReadForGuesser = textToReadForGuesser.substring(0, textToReadForGuesser.indexOf("(")).trim();//remove jp meaning from word
+            }
+            textToSpeech.speak(textToReadForGuesser, TextToSpeech.QUEUE_FLUSH, null, null);
+        });
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setView(dialog_show_guessers_wordView)
+                .setPositiveButton("Done (ずみ)", (dialog, which) -> {
+                    stopLoadingAnimation();
+                    restartGameState();
+                })
+                .setCancelable(false);
+        AlertDialog dialog = builder.create();
+        dialog.show();
+    }
+
+
 
     private void resetTimerInDB() {
         firestore.collection("games").document(gameId)
@@ -819,14 +854,14 @@ public class DrawingGameActivity extends AppCompatActivity {
                     Log.e(TAG, "Error updating new drawer in Firestore", e);
                 });
 
-        // Optionally update the UI immediately after selecting the new drawer
+
         //drawerNameTextView.setText(newDrawer);
     }
 
     private void eraseDrawView() {
         // Initialize Firestore and Realtime Database instances
 
-        // Now delete the game data from Realtime Database
+        //delete the game draw data from Realtime Database
         database.getReference("games").child(gameId).child(teamName).child("strokes").removeValue()
                 .addOnSuccessListener(aVoid2 -> {
                     Log.d("RealtimeDatabase", "stokes erased from draw view!");
@@ -843,8 +878,8 @@ public class DrawingGameActivity extends AppCompatActivity {
 
         // Resume the timer and drawing after the guess has been processed
         Log.d("GameStatus", "Resuming the game.");
-        timerTextView.setText("Time Left: ");//Set the timer to back to something that is not "Paused"
-        // Logic to resume the timer (re-implement this as per your timer logic)
+        timerTextView.setText("Time (時): ");//Set the timer to back to something that is not "Paused"
+
         //startGame();  // Call startGame or your resume logic
         drawingView.setDrawingEnabled(userIsDrawer);  // Enable drawing only if the user is the drawer
     }
@@ -882,7 +917,7 @@ public class DrawingGameActivity extends AppCompatActivity {
     }
 
     private void checkIfUserIsDrawler(String teamName, OnCheckDrawerListener listener) {
-        // Fetch the game data from Firestore to check for the drawer
+        //Fetch the game data from Firestore to check for the drawer
         firestore.collection("games")
                 .document(gameId) // Replace with the actual game ID
                 .get()
@@ -890,11 +925,11 @@ public class DrawingGameActivity extends AppCompatActivity {
                     if (task.isSuccessful()) {
                         DocumentSnapshot gameDoc = task.getResult();
                         if (gameDoc.exists()) {
-                            // Get the teamDrawers map from the game document
+                            //Get the teamDrawers map from the game document
                             Map<String, String> teamDrawers = (Map<String, String>) gameDoc.get("teamDrawers");
                             String selectedDrawer = teamDrawers.get(teamName); // Get the drawer for the specific team
 
-                            // Check if the Online_user_id matches the selected drawer
+                            //Check if the Online_user_id matches the selected drawer
                             boolean isDrawler = Online_user_id.equals(selectedDrawer);
                             listener.onCheck(isDrawler); // Notify the result using the listener
                         } else {
@@ -908,7 +943,7 @@ public class DrawingGameActivity extends AppCompatActivity {
                 });
     }
 
-    // Listener interface to handle the async result
+    //Listener interface to handle the async result
     interface OnCheckDrawerListener {
         void onCheck(boolean isDrawler);
     }
@@ -946,7 +981,7 @@ public class DrawingGameActivity extends AppCompatActivity {
                 // Shuffle the list of all vocabulary items
                 Collections.shuffle(allVocabularyItems);
 
-                // Add the first 15 vocabulary items to the randomized list (or less if fewer than 15 are available)
+                //Add the first 15 vocabulary items to the randomized list
                 randomizedWords.addAll(allVocabularyItems.subList(0, Math.min(15, allVocabularyItems.size())));
 
                 Log.d("FirebaseData", "Randomized words (limited to 15): " + randomizedWords); // Log the randomized vocabulary items
@@ -979,19 +1014,17 @@ public class DrawingGameActivity extends AppCompatActivity {
 
         // Check if the words list is null or empty
         if (words == null || words.isEmpty()) {
-            // You can show a Toast message or handle this scenario as needed
+
             Toast.makeText(this, "No words available for selection.", Toast.LENGTH_SHORT).show();
-            return; // Exit the method early if no words are available
+            return; //Exit the method early if no words are available
         }
 
 
         //Create the dialog
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        View dialogView = LayoutInflater.from(this).inflate(R.layout.dialog_word_selection, null);
-        builder.setView(dialogView);
+        View dialog_word_selectionView = LayoutInflater.from(this).inflate(R.layout.dialog_word_selection, null);
+        builder.setView(dialog_word_selectionView);
 
-        //Set the dialog title (optional since it's in the layout)
-        //TextView wordSelectionTitle = dialogView.findViewById(R.id.wordSelectionTitle);
 
         //Create the dialog instance
         AlertDialog dialog = builder.create();
@@ -999,7 +1032,7 @@ public class DrawingGameActivity extends AppCompatActivity {
         dialog.setCanceledOnTouchOutside(false); // Prevent dismissal on touch outside
         dialog.setCancelable(false); // Prevent dismissal by back button
 
-        ListView wordListView = dialogView.findViewById(R.id.wordListView);
+        ListView wordListView = dialog_word_selectionView.findViewById(R.id.wordListView);
 
         //Create a custom adapter to show only the word and meaning
         ArrayAdapter<VocabularyItem> adapter = new ArrayAdapter<VocabularyItem>(this,
@@ -1167,8 +1200,17 @@ public class DrawingGameActivity extends AppCompatActivity {
         Log.d("handleRoundUpdateForTeam", "Selected round: " + selectedRound);
 
         if (teamRoundNumber > selectedRound) {
-            endGame();
-            return;
+            if (!userIsDrawer) {
+
+                listenForWordInFirestore();
+                endGame();
+                return;
+
+            }
+            else{
+                endGame();
+                return;
+            }
         }
         //Since teamRoundNumber is only greater than currentRoundNumberFromText when a round is incremented on a correct guess we know that the word was solved if this is true
         if(teamRoundNumber> currentRoundNumberFromText) {
@@ -1319,16 +1361,17 @@ public class DrawingGameActivity extends AppCompatActivity {
         timerRunnable = new Runnable() {
             @Override
             public void run() {
-                if (!"Paused".equals(timerTextView.getText().toString())) {
+                if (!"Paused (ポーズ)".equals(timerTextView.getText().toString())) {
                     // Continue the countdown when not paused
                     if (remainingTime > 0) {
                         remainingTime--;
 
                         // Update the UI with the new time
-                        timerTextView.setText("Time Left: " + remainingTime);
+                        timerTextView.setText("Time (時): " + remainingTime);
                     } else if (remainingTime == 0) {
                         Log.d("DrawingGame", String.valueOf(remainingTime));
                         Toast.makeText(DrawingGameActivity.this, "Time's up!", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(DrawingGameActivity.this, "時間切れだ！", Toast.LENGTH_SHORT).show();
 
                         if (userIsDrawer) {
                             // Call these methods once and then continue with Firestore updates
@@ -1435,12 +1478,13 @@ public class DrawingGameActivity extends AppCompatActivity {
                                     // Update the UI and handle the countdown
                                     if (remainingTime > 0) {
                                         // Display the remaining time (subtract 1 to sync with drawer)
-                                        timerTextView.setText("Time Left: " + (remainingTime - 1));
+                                        timerTextView.setText("Time (時): " + (remainingTime - 1));
                                         // Schedule the next fetch immediately to sync with drawer
                                         timerHandler.postDelayed(this, 1000);
                                     }
                                     else if (!userIsDrawer && remainingTime == 0) {
                                         Toast.makeText(DrawingGameActivity.this, "Time's up!", Toast.LENGTH_SHORT).show();
+                                        Toast.makeText(DrawingGameActivity.this, "時間切れだ！", Toast.LENGTH_SHORT).show();
                                         Log.d("DrawingGame", "3-second delay before switching rounds...");
 
                                         listenForWordInFirestore();//show word and meaning to guesser
@@ -1453,6 +1497,8 @@ public class DrawingGameActivity extends AppCompatActivity {
                                     }
                                     Log.d("DrawingGame", "Remaining time: " + remainingTime);
                                     Log.d("DrawingGame", "User is drawer: " + userIsDrawer);
+                                    Log.d("DrawingGame", "Calling for round " + selectedRound);
+                                    getCurrentRound();
                                 } else {
                                     Log.e("DrawingGame", "Field for team " + studentTeamMap.get(Online_user_id) + " does not exist.");
                                     remainingTime = 0; // Default to 0 if no time is found
@@ -1587,30 +1633,49 @@ public class DrawingGameActivity extends AppCompatActivity {
 
     //End game when all rounds complete
     private void endGame() {
-        // Check if the activity is finishing or destroyed before showing the dialog to prevent memory leakage
+        // Check if the activity is finishing or destroyed before showing the dialog to prevent memory leaks
         if (!isFinishing() && !isDestroyed()) {
-            getScore(Online_user_id);//call one more time to get most up to date score
-            AlertDialog.Builder builder = new AlertDialog.Builder(this);
-            builder.setTitle("Game Over");
-            builder.setMessage("Final Scores:\n" + scoreTextView.getText());
-            builder.setPositiveButton("OK", (dialog, which) -> {
-                dialog.dismiss();
+            getScore(Online_user_id); // Ensure the latest score is fetched
 
-                // Clear the active game field for student so there light indicator dose not show an active game
-                clearActiveGameField();
+            //Inflate
+            LayoutInflater inflater = getLayoutInflater();
+            View dialog_end_gameView= inflater.inflate(R.layout.dialog_end_game, null);
 
-                // Attempt to navigate to the ProfileFragment
-                navigateToLoginActivity();
+            //Initialize dialog views
+            TextView finalScoreTextView = dialog_end_gameView.findViewById(R.id.finalScoreTextView);
+            finalScoreTextView.setText("Final Score (スコア)\n" + scoreTextView.getText());
+            Button readAloudButton = dialog_end_gameView.findViewById(R.id.readAloudButton);
+            readAloudButton.setText(vocabWordTextView.getText().toString());
 
-
+            readAloudButton.setOnClickListener(v -> {
+                String textToReadLastWord = vocabWordTextView.getText().toString();
+                if (textToReadLastWord.contains("(")) {
+                    textToReadLastWord = textToReadLastWord.substring(0, textToReadLastWord.indexOf("(")).trim();//remove jp meaning from word
+                }
+                textToSpeech.speak(textToReadLastWord, TextToSpeech.QUEUE_FLUSH, null, null);
             });
 
-            builder.setCancelable(false); // Prevent dialog from being canceled by the back button
-            // Create the dialog instance
-            AlertDialog dialog = builder.create();
-            dialog.setCanceledOnTouchOutside(false); // Allow the dialog to not be cancelable when the user taps outside
+            AlertDialog.Builder builder = new AlertDialog.Builder(this);
+            builder.setView(dialog_end_gameView);
 
-            // Show the dialog if the activity is in a valid state
+            //Make the dialog non cancelable by back button and outside touch
+            builder.setCancelable(false);
+            AlertDialog dialog = builder.create();
+            dialog.setCanceledOnTouchOutside(false);
+
+            //Set up the OK button to close the dialog and navigate
+            Button okButton = dialog_end_gameView.findViewById(R.id.okButton);
+            okButton.setOnClickListener(v -> {
+                dialog.dismiss();
+
+                //Clear the active game field to indicate no active game
+                clearActiveGameField();
+
+                //Navi to LoginActivity
+                navigateToLoginActivity();
+            });
+
+            //Show the dialog if the activity is in a valid state
             if (!isFinishing() && !isDestroyed()) {
                 dialog.show();
             }
@@ -1636,7 +1701,7 @@ public class DrawingGameActivity extends AppCompatActivity {
             // Start the LoginActivity
             startActivity(intent);
 
-            //finish the current activity if you don't want to return to it
+            //Finish the current activity if you don't want to return to it
             finish();
 
         } catch (Exception errors) {
@@ -1666,19 +1731,27 @@ public class DrawingGameActivity extends AppCompatActivity {
                 })
                 .addOnFailureListener(e -> Log.e(TAG, "Error updating score for student: " + Online_user_id, e));
     }
-
+    //Clean up
     @Override
     protected void onDestroy() {
         super.onDestroy();
         if (timerHandler != null) {
             timerHandler.removeCallbacks(timerRunnable);
+            Log.d("DrawingGame", "Timer handler removed.");
         }
         if (guessListener != null) {
-            guessListener.remove();  // Cleanup listener on destroy
+            guessListener.remove();
+            Log.d("DrawingGame", "GuessListener removed.");
         }
         if (guessQueueListener != null) {
-            guessQueueListener.remove();  // Clean up the listener on destroy
+            guessQueueListener.remove();
             guessQueueListener = null;
+            Log.d("DrawingGame", "GuessQueueListener removed.");
+        }
+        if (textToSpeech != null) {
+            textToSpeech.stop();
+            textToSpeech.shutdown();
+            Log.d("DrawingGame", "TextToSpeech shutdown.");
         }
 
     }

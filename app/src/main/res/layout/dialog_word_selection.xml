@@ -9,7 +9,9 @@
         android:id="@+id/wordSelectionTitle"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Select a Vocabulary Word"
+        android:textAlignment="center"
+        android:textColor="@color/black"
+        android:text="Select a Vocabulary Word\n単語の選択"
         android:textSize="18sp"
         android:textStyle="bold"
         android:layout_gravity="center"/>

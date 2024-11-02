@@ -31,7 +31,7 @@
         android:layout_height="wrap_content"
         android:id="@+id/directory_nav"
         android:layout_alignParentBottom="true"
-        android:background="?attr/colorPrimary"
+        android:background="#000000"
         android:layout_below="@id/toolbar"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
@@ -40,7 +40,7 @@
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintVertical_bias="1.0"
         app:menu="@menu/bottom_navigation_menu"
-        app:itemTextColor="@color/black"
-        app:itemIconTint="@color/black"
+        app:itemTextColor="@color/white"
+        app:itemIconTint="@color/white"
         />
 </androidx.constraintlayout.widget.ConstraintLayout>

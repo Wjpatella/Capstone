@@ -4,9 +4,12 @@ import static com.example.capstone.FS_DBHelper.Online_user_id;
 import static com.example.capstone.FS_DBHelper.Student_online;
 
 import com.google.firebase.database.FirebaseDatabase;
+
+import androidx.core.graphics.drawable.DrawableCompat;
 import androidx.fragment.app.Fragment;
 
 import android.content.Intent;
+import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -104,16 +107,20 @@ public class StudentGameFragment extends Fragment {
                     });
         } else {
             Toast.makeText(getActivity(), "You do not have a Teacher", Toast.LENGTH_SHORT).show();
+            Toast.makeText(getActivity(), "あなたには先生がいない。", Toast.LENGTH_SHORT).show();
         }
     }
 
 
 
     private void updateIndicatorColor(String studentGameStatus) {
-        if (studentGameStatus != null && gameInFireStore==true) {
-            gameStatusIndicator.setBackgroundColor(getResources().getColor(R.color.green));
+        Drawable drawable = gameStatusIndicator.getBackground();
+        drawable = DrawableCompat.wrap(drawable);
+
+        if (studentGameStatus != null && gameInFireStore) {
+            DrawableCompat.setTint(drawable, getResources().getColor(R.color.green));
         } else {
-            gameStatusIndicator.setBackgroundColor(getResources().getColor(R.color.red));
+            DrawableCompat.setTint(drawable, getResources().getColor(R.color.red));
         }
     }
 
@@ -125,7 +132,8 @@ public class StudentGameFragment extends Fragment {
             startActivity(intent);
         }
         else {
-            Toast.makeText(getActivity(), "No active game found", Toast.LENGTH_SHORT).show();
+            Toast.makeText(getActivity(), "No active game found.", Toast.LENGTH_SHORT).show();
+            Toast.makeText(getActivity(), "アクティブな試合は見つかりませんでした。", Toast.LENGTH_SHORT).show();
         }
     }
 

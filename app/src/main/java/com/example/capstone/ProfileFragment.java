@@ -2,6 +2,7 @@ package com.example.capstone;
 
 import static com.example.capstone.FS_DBHelper.Online_user_id;
 
+import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Typeface;
 import android.media.Image;
@@ -26,6 +27,7 @@ import androidx.fragment.app.Fragment;
 import com.google.firebase.firestore.FirebaseFirestore;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -100,13 +102,13 @@ public class ProfileFragment extends Fragment {
                 FS_DBHelper.fetchStudentData((student_name, teacherName) -> {
                     if (student_name != null) {
                         studentName.setText(student_name);
-                        teacherTextView.setText("Teacher: " + teacherName);
+                        teacherTextView.setText("Teacher（先生）: " + teacherName);
                         getScore(student_name);
 
                         //Get the students class name and load the leaderboard for that class
                         getStudentsClassName(teacherName, className -> {
                             if (className != null) {
-                                leaderboardTitle.setText("Leaderboard - " + className);
+                                leaderboardTitle.setText("Leaderboard (リーダーボード) - " + className);
                                 getStudentsForClass(teacherName, className); // Load the students and leaderboard for this class
                             }
                         });
@@ -175,19 +177,22 @@ public class ProfileFragment extends Fragment {
             TableRow headerRow = new TableRow(getContext());
 
             TextView positionHeader = new TextView(getContext());
-            positionHeader.setText("Position");
+            positionHeader.setText("Position\n位");
+            positionHeader.setTextColor(Color.parseColor("#000000"));
             positionHeader.setPadding(16, 16, 16, 16);
             positionHeader.setTypeface(null, Typeface.BOLD); // Set Bold
             positionHeader.setPaintFlags(positionHeader.getPaintFlags() | Paint.UNDERLINE_TEXT_FLAG); // Set Underline
 
             TextView nameHeader = new TextView(getContext());
-            nameHeader.setText("Name");
+            nameHeader.setText("Name\nなまえ");
+            nameHeader.setTextColor(Color.parseColor("#000000"));
             nameHeader.setPadding(16, 16, 16, 16);
             nameHeader.setTypeface(null, Typeface.BOLD); //Set Bold
             nameHeader.setPaintFlags(nameHeader.getPaintFlags() | Paint.UNDERLINE_TEXT_FLAG); // Set Underline
 
             TextView scoreHeader = new TextView(getContext());
-            scoreHeader.setText("Last Score");
+            scoreHeader.setText("Last Score\n前回のスコア");
+            scoreHeader.setTextColor(Color.parseColor("#000000"));
             scoreHeader.setPadding(16, 16, 16, 16);
             scoreHeader.setTypeface(null, Typeface.BOLD); // Set Bold
             scoreHeader.setPaintFlags(scoreHeader.getPaintFlags() | Paint.UNDERLINE_TEXT_FLAG); // Set Underline
@@ -260,8 +265,9 @@ public class ProfileFragment extends Fragment {
 
     //Get the scores of all the studnets in the class
     private void getStudentsScores(ArrayList<String> studentNames) {
-        List<Integer> scores = new ArrayList<>();
-        List<String> students = new ArrayList<>(studentNames); //avoid modifying the original list
+        //List<Integer> scores = new ArrayList<>();
+        //List<String> students = new ArrayList<>(studentNames); //avoid modifying the original list
+        Map<String, Integer> studentScoresMap = new HashMap<>();
 
         for (String studentId : studentNames) {
             firestore.collection("students")
@@ -269,21 +275,33 @@ public class ProfileFragment extends Fragment {
                     .get()
                     .addOnSuccessListener(documentSnapshot -> {
                         if (documentSnapshot.exists()) {
+                            Log.d("getStudentsScores", "Document for student " + studentId + " exists.");
+                            Log.d("getStudentsScores", "Studnet's Score " + documentSnapshot.getLong("score"));
+
                             Long scoreValue = documentSnapshot.getLong("score");
                             Integer score = (scoreValue != null) ? scoreValue.intValue() : 0;
-                            scores.add(score);
+                            studentScoresMap.put(studentId, score); // Stored in map with studentId as key
                         } else {
                             Log.e("getStudentsScores", "Document for student " + studentId + " does not exist.");
-                            scores.add(0); // Set score to 0 if the document does not exist
+                            studentScoresMap.put(studentId, 0); // Set score to 0 if the document does not exist
                         }
 
                         // After fetching all the scores, update the leaderboard
-                        if (scores.size() == studentNames.size()) {
-                            setPositionsForStudents(students, scores); // Pass students and their scores to set positions
+                        if (studentScoresMap.size() == studentNames.size()) {
+                            updateLeaderboardWithScores(studentScoresMap); // Pass students and their scores to set positions
                         }
                     })
                     .addOnFailureListener(e -> Log.e("FirestoreError", "Error getting score for student " + studentId, e));
         }
+    }
+
+    private void updateLeaderboardWithScores(Map<String, Integer> studentScoresMap) {
+        // Split the students and scores from the map
+        List<String> students = new ArrayList<>(studentScoresMap.keySet());
+        List<Integer> scores = new ArrayList<>(studentScoresMap.values());
+
+        //set positions for students
+        setPositionsForStudents(students, scores);
     }
 
         private void setPositionsForStudents(List<String> students, List<Integer> scores) {
@@ -295,6 +313,8 @@ public class ProfileFragment extends Fragment {
 
             // Sort the list based on scores in descending order. Compare scores to find positions.
             studentScores.sort((position1, position2) -> position2.second.compareTo(position1.second));
+
+            Log.d("Leaderboard", "Student Scores: " + studentScores);
 
             // Clear the leaderboard table before adding new rows
             leaderboardTable.removeAllViews();
@@ -342,7 +362,7 @@ public class ProfileFragment extends Fragment {
                             if (documentSnapshot.contains("score")) {
                                 //Retrieve the score value
                                 Integer score = documentSnapshot.getLong("score").intValue(); // Get as long then convert to int
-                                lastscoreTextView.setText("Previous Score: " + score);
+                                lastscoreTextView.setText("Previous Score（前のスコア）: " + score);
 
                                 Log.d("Score", "Score for guesser " + studentId + ": " + score);
 

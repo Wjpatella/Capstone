@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="16dp">
+
+    <TextView
+        android:id="@+id/endGameTitle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Game Over (ゲームオーバー)"
+        android:textStyle="bold"
+        android:textSize="22sp"
+        android:gravity="center"
+        android:textColor="@color/black"
+
+        android:layout_gravity="center_horizontal"/>
+
+    <TextView
+        android:id="@+id/endDialogTextView"
+        android:layout_marginTop="10dp"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Listen to the last word a few times and repeat it."
+        android:textColor="@color/black"
+        android:textSize="16sp" />
+
+    <TextView
+        android:id="@+id/endDialogTextView2"
+        android:layout_marginTop="10dp"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="The last word was ..."
+        android:textStyle="bold"
+        android:textColor="@color/black"
+        android:textSize="18sp" />
+
+    <Button
+        android:id="@+id/readAloudButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text=""
+        android:layout_marginTop="16dp"
+        android:drawableLeft="@drawable/baseline_volume_up_24"/>
+
+    <TextView
+        android:id="@+id/finalScoreTextView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Final Score (スコア)"
+        android:textColor="@color/black"
+        android:textSize="18sp"
+        android:layout_marginTop="10dp"
+        android:gravity="center"
+        android:layout_gravity="center_horizontal"/>
+
+    <Button
+        android:id="@+id/okButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Done (ずみ)"
+        android:layout_marginTop="16dp"
+        android:layout_gravity="center_horizontal"/>
+
+</LinearLayout>

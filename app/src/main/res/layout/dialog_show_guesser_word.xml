@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="16dp">
+
+
+
+
+    <TextView
+        android:id="@+id/guesserDialogTextView"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Listen to the word a few times and repeat it.\nその単語を数回聞き、繰り返す。\n"
+        android:textColor="@color/black"
+        android:textStyle="bold"
+        android:textSize="18sp" />
+
+    <TextView
+        android:id="@+id/guesserDialogTextView2"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="The word was ...\nその言葉は..."
+
+        android:textColor="@color/black"
+        android:textSize="16sp" />
+
+
+
+        <Button
+            android:id="@+id/readAloudButtonForGuesser"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text=""
+            android:layout_marginTop="16dp"
+            android:drawableLeft="@drawable/baseline_volume_up_24"/>
+
+
+
+</LinearLayout>

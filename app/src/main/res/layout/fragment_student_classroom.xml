@@ -24,55 +24,57 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_marginTop="10dp"
-        android:layout_marginBottom="50dp"
+        android:layout_marginBottom="40dp"
         android:orientation="vertical"
-        android:padding="16dp"
+        android:padding="10dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintTop_toTopOf="parent">
 
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:gravity="end"
-        android:orientation="horizontal"
-        android:layout_marginBottom="8dp"
-        >
-        <!-- Grid of Students NEED-->
-        <TextView
-            android:id="@+id/teacher_title"
-            android:textStyle="bold"
-            android:layout_width="70dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="0"
-            android:text="Teacher:"
-            android:textSize="16sp"
-            />
-
-
-        <TextView
-            android:id="@+id/teacher_text"
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_weight="0"
-            android:text="Teacher Name" />
+            android:layout_marginBottom="8dp"
+            android:gravity="end"
+            android:orientation="horizontal">
+            <!-- Grid of Students NEED-->
+            <TextView
+                android:id="@+id/teacher_title"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_weight="0"
+                android:text="Teacher (先生):"
+                android:textColor="@color/black"
+                android:textSize="20sp"
+                android:textStyle="bold" />
+
+
+            <TextView
+                android:id="@+id/teacher_text"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_weight="0"
+                android:text="Teacher Name"
+                android:textColor="@color/black"
+                android:textSize="18sp" />
         </LinearLayout>
 
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:gravity="end"
-            android:orientation="horizontal"
             android:layout_marginBottom="8dp"
-            >
+            android:gravity="end"
+            android:orientation="horizontal">
             <!-- Grid of Students NEED-->
             <TextView
                 android:id="@+id/classroom_title"
-                android:textStyle="bold"
-                android:layout_width="45dp"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_weight="0"
-                android:text="Class:" />
+                android:text="Class (クラス):"
+                android:textColor="@color/black"
+                android:textSize="20sp"
+                android:textStyle="bold" />
 
 
             <TextView
@@ -80,7 +82,9 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_weight="0"
-                android:text="Classroom" />
+                android:text="Classroom"
+                android:textColor="@color/black"
+                android:textSize="18sp" />
         </LinearLayout>
 
         <androidx.recyclerview.widget.RecyclerView
@@ -98,20 +102,21 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:paddingBottom="8dp"
-            android:text="Teams"
+            android:text="Teams (チーム)"
+            android:textColor="@color/black"
+            android:textSize="20sp"
             android:textStyle="bold" />
 
         <!-- List of Teams NEED-->
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/teams_grid"
             android:layout_width="match_parent"
-            android:layout_height="196dp"
+            android:layout_height="297dp"
             android:layout_weight="0"
             android:background="@drawable/border"
             android:scrollbars="vertical">
 
         </androidx.recyclerview.widget.RecyclerView>
-
 
 
     </LinearLayout>

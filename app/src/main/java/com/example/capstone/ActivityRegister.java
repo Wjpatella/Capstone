@@ -146,6 +146,7 @@ public class ActivityRegister extends MainActivity {
                         QuerySnapshot querySnapshot= task_check_if_Sname_taken.getResult();
                         if (task_check_if_Sname_taken.isSuccessful() && !querySnapshot.isEmpty()) {
                             Toast.makeText(ActivityRegister.this, "Student name already taken", Toast.LENGTH_SHORT).show();
+                            Toast.makeText(ActivityRegister.this, "学生名はすでに使用済み", Toast.LENGTH_SHORT).show();
                         } else {
 
                             String studentPassword = student_Password.getText().toString();
@@ -159,6 +160,7 @@ public class ActivityRegister extends MainActivity {
                 }
                 else {
                     Toast.makeText(ActivityRegister.this, "You must select a checkbox and fill in all the required information.", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(ActivityRegister.this, "チェックボックスを選択し、必要事項をすべて記入してください。", Toast.LENGTH_SHORT).show();
                 }
             }
          });

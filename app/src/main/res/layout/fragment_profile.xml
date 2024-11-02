@@ -50,7 +50,7 @@
     <LinearLayout
         android:id="@+id/profile_linearlayout"
         android:layout_width="228dp"
-        android:layout_height="100dp"
+        android:layout_height="125dp"
         android:layout_marginTop="20dp"
         android:layout_marginEnd="120dp"
         android:layout_marginBottom="399dp"
@@ -64,6 +64,7 @@
 
         <!-- teacher text-->
         <TextView
+            android:textColor="@color/black"
             android:id="@+id/teacher_viewtext"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -77,6 +78,7 @@
 
         <!-- student text-->
         <TextView
+            android:textColor="@color/black"
             android:id="@+id/student_viewtext"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -93,7 +95,8 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
-            android:text="Teacher: "
+            android:text="Teacher (先生): "
+            android:textColor="@color/black"
             android:textAlignment="center"
             android:visibility="visible"
             tools:layout_editor_absoluteX="175dp"
@@ -102,10 +105,11 @@
         <TextView
             android:id="@+id/textViewLastScore"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
+            android:layout_height="36dp"
             android:layout_marginTop="8dp"
-            android:text="Last Score: "
+            android:text=""
             android:textAlignment="center"
+            android:textColor="@color/black"
             android:visibility="visible"
             tools:layout_editor_absoluteX="175dp"
             tools:layout_editor_absoluteY="126dp" />
@@ -120,29 +124,32 @@
         android:layout_width="350dp"
         android:layout_height="500dp"
         android:layout_gravity="center"
-        android:layout_marginStart="30dp"
+        android:layout_marginStart="22dp"
         android:layout_marginTop="100dp"
         android:layout_marginEnd="31dp"
         android:layout_marginBottom="31dp"
+        android:background="@drawable/border"
         android:orientation="vertical"
         android:padding="16dp"
         app:flow_verticalAlign="center"
-        android:background="@drawable/border"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="@id/top_of_profilepage">
+        app:layout_constraintTop_toTopOf="@id/top_of_profilepage"
+        app:layout_constraintVertical_bias="0.67">
 
         <!-- Leaderboard Title -->
 
         <TextView
             android:id="@+id/leaderboard_name_title"
             android:layout_width="match_parent"
-            android:layout_height="36dp"
+            android:layout_height="56dp"
             android:layout_gravity="center"
             android:layout_marginBottom="10dp"
             android:gravity="center"
             android:text="Leaderboard"
+            android:textColor="@color/black"
 
             android:textSize="18sp"
             android:textStyle="bold" />
@@ -154,6 +161,7 @@
             android:layout_gravity="center"
             android:gravity="center"
             android:text="*Select Class*"
+            android:textColor="@color/black"
 
             android:textSize="13sp"
 
@@ -174,8 +182,7 @@
             android:layout_width="match_parent"
             android:layout_height="0dp"
             android:layout_weight="1"
-            android:background="@drawable/border"
-            >
+            android:background="@drawable/border">
 
             <!-- TableLayout for Leaderboard -->
             <TableLayout
