@@ -22,7 +22,7 @@
         android:layout_marginTop="10dp"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Listen to the last word a few times and repeat it."
+        android:text="Listen to the last word a few times and repeat it.\n最後の単語を数回聞き、それを繰り返す。\n"
         android:textColor="@color/black"
         android:textSize="16sp" />
 
@@ -31,7 +31,7 @@
         android:layout_marginTop="10dp"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="The last word was ..."
+        android:text="The last word was ...\n最後の言葉は..."
         android:textStyle="bold"
         android:textColor="@color/black"
         android:textSize="18sp" />

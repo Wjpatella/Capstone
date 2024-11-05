@@ -183,11 +183,11 @@ public class DrawingGameActivity extends AppCompatActivity {
                                 }
                             });
 
-                            // Set up game details
+                            //Set up game details
                             setupGame(selectedTopic, teacherName, selectedClass);
 
                             // Initialize the game with the retrieved data
-                            // Use timer, mode, class, topic, and teacherName as needed
+
                         } else {
                             Log.d("Firestore", "No such document!");
                         }
@@ -244,7 +244,7 @@ public class DrawingGameActivity extends AppCompatActivity {
 
     private void setupGame(String selectedTopic, String teacherName, String selectedClass) {
         topicView.setText("Topic (トピック): " + selectedTopic);// Show selected topic in the UI
-        // Fetch teams from Firestore
+        //Fetch teams from Firestore
         getScore(Online_user_id);
         fetchTeams(selectedTopic ,teacherName, selectedClass, gameId);
 
@@ -258,7 +258,7 @@ public class DrawingGameActivity extends AppCompatActivity {
     private void fetchTeams(String selectedTopic, String teacherName, String selectedClass, String gameId) {//Gets students team name and team members
         if (teacherName == null || selectedClass == null) {
             Log.e(TAG, "teacherName or selectedClass is null.");
-            return; // Prevent further execution if the values are null
+            return;
         }
 
         firestore.collection("teachers")
@@ -275,14 +275,14 @@ public class DrawingGameActivity extends AppCompatActivity {
                                 Map<String, Object> classroomMap = (Map<String, Object>) classTeams.get(selectedClass);
 
                                 if (classroomMap != null && classroomMap.containsKey("teams")) {
-                                    // Get the teams map
+
                                     Map<String, List<Map<String, String>>> teamsMap = (Map<String, List<Map<String, String>>>) classroomMap.get("teams");
 
                                     if (teamsMap != null) {
                                         teamNames = new ArrayList<>();
-                                        studentTeamMap.clear(); // Clear previous mappings
+                                        studentTeamMap.clear();
 
-                                        // Iterate over the teams and students
+                                        //Iterate over the teams and students
                                         for (Map.Entry<String, List<Map<String, String>>> entry : teamsMap.entrySet()) {
                                             teamName = entry.getKey();
                                             List<Map<String, String>> studentMaps = entry.getValue();
@@ -391,19 +391,19 @@ public class DrawingGameActivity extends AppCompatActivity {
         builder.setTitle("Tell the drawer Your guess!\n推測を引き出しに伝えてください！")
                 .setMessage("I think the word is...\n「その言葉は...」")
                 .setPositiveButton("Done (ずみ)", (dialog, which) -> {
-                    // Disable the guess button when done
+                    //Disable the guess button when done
                     guessButton.setEnabled(false);
-                    dialog.dismiss(); // Dismiss the dialog after pressing Done
+                    dialog.dismiss(); //Dismiss the dialog after pressing Done
                 })
-                .setCancelable(false); // Allow the dialog to not be cancelable by back button
+                .setCancelable(false); //Allow the dialog to not be cancelable by back button
 
         // Create the dialog instance
         AlertDialog dialog = builder.create();
 
-        // Allow the dialog to not be canceled when the user taps outside
+        //Allow dialog to not be canceled when the user taps outside
         dialog.setCanceledOnTouchOutside(false);
 
-        // Show the dialog
+        //Show dialog
         dialog.show();
 
         pauseGame();
@@ -411,7 +411,7 @@ public class DrawingGameActivity extends AppCompatActivity {
         // Start checking the guess queue for the user
         checkGuessQueueForUser(teamName);
         // check current round to check if roles need to be swapped
-        // Gets called to soon need to be called while dialog is open
+
     }
 
     private void checkGuessQueueForUser(String teamName) {
@@ -464,8 +464,8 @@ public class DrawingGameActivity extends AppCompatActivity {
     private void retryCheckGuessQueueForUser(String teamName) {
         if  (CheckGuessQueue) {
             new Handler(Looper.getMainLooper()).postDelayed(() -> {
-                checkGuessQueueForUser(teamName); // Recheck the queue after 3 seconds
-            }, 3000); // 3-second delay before rechecking
+                checkGuessQueueForUser(teamName); // Recheck queue after 3 seconds
+            }, 3000); // 3second delay before rechecking
         }
         else {
             Log.d("retryCheckGuessQueueForUser", "Retry stopped as CheckGuessQueue is false.");
@@ -478,7 +478,7 @@ public class DrawingGameActivity extends AppCompatActivity {
 
 
         // Check if Online_user_id is a drawer based on teamName
-        checkIfUserIsDrawler(teamName, isDrawler -> {
+        checkIfUserIsDrawer(teamName, isDrawler -> {
             if (isDrawler) {
                 Log.d(TAG, "User " + Online_user_id + " is the drawer for team: " + teamName);
                 guessButton.setVisibility(View.GONE);
@@ -615,7 +615,7 @@ public class DrawingGameActivity extends AppCompatActivity {
             textToSpeech.speak(textToRead, TextToSpeech.QUEUE_FLUSH, null, null);
         });
 
-        // Build and display the dialog
+        //dialog
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setView(dialog_guess_receivedView)
                 .setPositiveButton("Correct (正解)", (dialog, which) -> {
@@ -743,7 +743,7 @@ public class DrawingGameActivity extends AppCompatActivity {
                 //restartGameState();
 
                 //restartGameState();
-            }, 2000);//delay to make sure guesser is behind in terms of time and lest guesser have time to comprehend the vocabulary word
+            }, 2000);//Delay to make sure guesser is behind in terms of time and lest guesser have time to comprehend the vocabulary word
 
             //restartGameState();
         }
@@ -761,7 +761,7 @@ public class DrawingGameActivity extends AppCompatActivity {
             resetTimerInDB();
             remainingTime = roundtime;//reassures time is reset
             stopLoadingAnimation();
-            restartGameState(); // Restart the whole activity
+            restartGameState(); //Restart the whole activity
 
             }, 1000);
         }
@@ -775,7 +775,7 @@ public class DrawingGameActivity extends AppCompatActivity {
             return;
         }
 
-        // Inflate custom dialog layout
+        //custom dialog layout
         LayoutInflater inflater = getLayoutInflater();
         View dialog_show_guessers_wordView = inflater.inflate(R.layout.dialog_show_guesser_word, null);
 
@@ -831,19 +831,19 @@ public class DrawingGameActivity extends AppCompatActivity {
         }
     }
     //games(collection)->gameId(document)->teamDrawers(map)->teamName(array)->name of drawer as sting in index 0
-    //The user was a draler they where removed from userTeammatesDrawerRemoved so they shouldn't be picked back to back
+    //The user was a drawer they where removed from userTeammatesDrawerRemoved so they shouldn't be picked back to back
     private void selectNewDrawer() {
         if (userTeammatesDrawerRemoved == null || userTeammatesDrawerRemoved.isEmpty()) {
             Log.e(TAG, "No students available to select a drawer.");
             return; // Prevent further execution if the list is empty or null
         }
         Log.d(TAG, "Should not have Online user in it if they were drawer once: " + userTeammates);
-        // Select a random student from the list (since the Online_user_id is no longer in the list)
+        //Select a random student from the list. the Online_user_id is no longer in the list
         Random random = new Random();
         int randomIndex = random.nextInt(userTeammatesDrawerRemoved.size()); // Get random index
         String newDrawer = userTeammatesDrawerRemoved.get(randomIndex); // Get new drawers name
 
-        // Update the Firestore database with the new drawer
+        //Update the Firestore database with the new drawer
         firestore.collection("games").document(gameId)
                 .update("teamDrawers." + teamName, newDrawer)
                 .addOnSuccessListener(aVoid -> {
@@ -916,7 +916,7 @@ public class DrawingGameActivity extends AppCompatActivity {
                 });
     }
 
-    private void checkIfUserIsDrawler(String teamName, OnCheckDrawerListener listener) {
+    private void checkIfUserIsDrawer(String teamName, OnCheckDrawerListener listener) {
         //Fetch the game data from Firestore to check for the drawer
         firestore.collection("games")
                 .document(gameId) // Replace with the actual game ID
@@ -938,7 +938,7 @@ public class DrawingGameActivity extends AppCompatActivity {
                         }
                     } else {
                         Log.e(TAG, "Error fetching game data: ", task.getException());
-                        listener.onCheck(false); // On failure, the user is not a drawer
+                        listener.onCheck(false); //On failure the user is not a drawer
                     }
                 });
     }
@@ -955,7 +955,7 @@ public class DrawingGameActivity extends AppCompatActivity {
         vocabularyWordRef.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
-                // Clear the list before adding new words
+
                 randomizedWords.clear();
                 Log.d("FirebaseData", "DataSnapshot: " + dataSnapshot.toString()); // Log the data snapshot
 
@@ -986,7 +986,7 @@ public class DrawingGameActivity extends AppCompatActivity {
 
                 Log.d("FirebaseData", "Randomized words (limited to 15): " + randomizedWords); // Log the randomized vocabulary items
 
-                // Start the game with the randomized words and meanings
+                //Start the game with the randomized words and meanings
                 startGameWithRandomWords(randomizedWords);
             }
 
@@ -1047,8 +1047,8 @@ public class DrawingGameActivity extends AppCompatActivity {
                 VocabularyItem item = getItem(position);
 
                 // Set the word and meaning text
-                wordTextView.setText(item.getWord()); // Display the English word
-                meaningTextView.setText(item.getMeaning()); // Display the Japanese meaning
+                wordTextView.setText(item.getWord()); //Display the English word
+                meaningTextView.setText(item.getMeaning()); //Display the Japanese meaning
 
                 return view;
             }
@@ -1123,8 +1123,8 @@ public class DrawingGameActivity extends AppCompatActivity {
 
 
     }
+    //Gets current round from Firestore for the team
     private void getCurrentRound() {
-        // Gets current round from Firestore for the team
         firestore.collection("games").document(gameId)
                 .get()
                 .addOnSuccessListener(documentSnapshot -> {
@@ -1188,9 +1188,9 @@ public class DrawingGameActivity extends AppCompatActivity {
 
     private void handleRoundUpdateForTeam(int teamRoundNumber) {
         //Extract the current round number from roundTextView
-        roundText = roundTextView.getText().toString(); // e.g., "Round: 1"
+        roundText = roundTextView.getText().toString(); // ex "Round: 1"
 
-        //Split and extract the number part from "Round: X"
+        //Split and get the number part from "Round: X"
         int currentRoundNumberFromText = Integer.parseInt(roundText.split(":")[1].trim());
 
         Log.d("handleRoundUpdateForTeam", "Current round for team: " + teamRoundNumber);
@@ -1214,7 +1214,7 @@ public class DrawingGameActivity extends AppCompatActivity {
         }
         //Since teamRoundNumber is only greater than currentRoundNumberFromText when a round is incremented on a correct guess we know that the word was solved if this is true
         if(teamRoundNumber> currentRoundNumberFromText) {
-            roundTextView.setText("Round: " + teamRoundNumber);
+            roundTextView.setText("Round (回): " + teamRoundNumber);
 
             Log.d("CurrentRound", "Current round for team: " + teamRoundNumber);
             Log.d("CurrentRound", "User is drawer: " + userIsDrawer);
@@ -1255,7 +1255,7 @@ public class DrawingGameActivity extends AppCompatActivity {
                 .get()
                 .addOnSuccessListener(documentSnapshot -> {
                     if (documentSnapshot.exists()) {
-                        // Access the "lastRoundInEachTeam" map
+
                         Map<String, Object> lastRoundMap = (Map<String, Object>) documentSnapshot.get("lastRoundInEachTeam");
 
                         // Check if the team exists in the map
@@ -1264,15 +1264,15 @@ public class DrawingGameActivity extends AppCompatActivity {
 
                             // Check if the retrieved value is a String or a List
                             if (lastRoundObj instanceof String) {
-                                // It's a String, set it directly
+                                // It's a String
                                 String lastRound = (String) lastRoundObj;
                                 Log.d("Firestore", "Last Round for team getLastRoundForTeam1" + teamName + ": " + lastRound);
                                 roundTextView.setText(lastRound);
                             } else if (lastRoundObj instanceof List<?>) {
-                                // If it's a List, you can decide how to handle it
+                                //It's a List
                                 List<?> lastRoundList = (List<?>) lastRoundObj;
 
-                                // For example, set the TextView to the first element in the list
+                                //set the TextView to the first element in the list
                                 if (!lastRoundList.isEmpty() && lastRoundList.get(0) instanceof String) {
                                     String lastRound = (String) lastRoundList.get(0);
                                     Log.d("Firestore", "Last Round for team getLastRoundForTeam2" + teamName + ": " + lastRound);
@@ -1333,11 +1333,11 @@ public class DrawingGameActivity extends AppCompatActivity {
                                 }
                             } else {
                                 Log.e("DrawingGame", "Field for team " + studentTeamMap.get(Online_user_id) + " does not exist.");
-                                remainingTime = 0; // Default to 0 if no time is found
+                                remainingTime = 0;
                             }
                         } else {
                             Log.e("DrawingGame", "Field 'timeLeftInTeamGame' does not exist.");
-                            remainingTime = 0; // Default to 0 if no time is found
+                            remainingTime = 0;
                         }
 
                         // Start the timer based on whether the user is the drawer or the guesser
@@ -1355,18 +1355,18 @@ public class DrawingGameActivity extends AppCompatActivity {
                 .addOnFailureListener(e -> Log.e("DrawingGame", "Error fetching remaining time: " + e.getMessage()));
     }
 
-
+    //Issue, Firebase is dose not like int values and only likes Long's
     private void startTimerForDrawer() {
         timerHandler = new Handler();
         timerRunnable = new Runnable() {
             @Override
             public void run() {
                 if (!"Paused (ポーズ)".equals(timerTextView.getText().toString())) {
-                    // Continue the countdown when not paused
+                    //Continue the countdown when not paused
                     if (remainingTime > 0) {
                         remainingTime--;
 
-                        // Update the UI with the new time
+                        //Update UI with the new time
                         timerTextView.setText("Time (時): " + remainingTime);
                     } else if (remainingTime == 0) {
                         Log.d("DrawingGame", String.valueOf(remainingTime));
@@ -1374,7 +1374,7 @@ public class DrawingGameActivity extends AppCompatActivity {
                         Toast.makeText(DrawingGameActivity.this, "時間切れだ！", Toast.LENGTH_SHORT).show();
 
                         if (userIsDrawer) {
-                            // Call these methods once and then continue with Firestore updates
+                            //Call these methods once and then continue with Firestore updates
                             updateRound();
                             clearGuessButtonQueue();
                             getCurrentRound();
@@ -1394,7 +1394,7 @@ public class DrawingGameActivity extends AppCompatActivity {
                                     Object timeLeftObj = timeLeftMap.get(studentTeamMap.get(Online_user_id));
 
                                     if (timeLeftObj instanceof Long) {
-                                        // Handle Long case (Due to firestore's limitation)
+                                        // Handle Long case due to firestore's limitation
                                         if(userIsDrawer){
                                             firestore.collection("games").document(gameId)
                                                     .update("timeLeftInTeamGame." + studentTeamMap.get(Online_user_id), remainingTime)
@@ -1402,7 +1402,7 @@ public class DrawingGameActivity extends AppCompatActivity {
                                                     .addOnFailureListener(e -> Log.e("DrawingGame", "Error updating time in Firestore: " + e.getMessage()));
                                         }
                                     } else if (timeLeftObj instanceof List<?>) {
-                                        // Handle List case (array of times)
+                                        //Handle List case (array of times)
                                         List<Object> timeLeftList = (List<Object>) timeLeftObj;
 
                                         if (!timeLeftList.isEmpty()) {
@@ -1434,7 +1434,7 @@ public class DrawingGameActivity extends AppCompatActivity {
         timerHandler.postDelayed(timerRunnable, 1000);
     }
 
-
+ //Issue, Firebase is dose not like int values and only likes Long's
     private void startTimerForGuesser() {
         // Initialize the handler and runnable for the guesser's timer
         timerHandler = new Handler();
@@ -1455,44 +1455,44 @@ public class DrawingGameActivity extends AppCompatActivity {
 
                                     // Handle if timeLeftObj is a Long (single value) or a List (array)
                                     if (timeLeftObj instanceof Long) {
-                                        // If it's a Long, simply cast and use it
+                                        // If it's a Long cast and use it
                                         remainingTime = ((Long) timeLeftObj).intValue();
                                         Log.d("DrawingGame", "Got Long value for remaining time: " + remainingTime);
                                     } else if (timeLeftObj instanceof List<?>) {
-                                        // If it's a List, proceed with the previous logic
+                                        // If it's a List proceed with the previous logic
                                         List<?> timeLeftList = (List<?>) timeLeftObj;
 
                                         // Ensure the array is not empty and index 0 contains a number
                                         if (!timeLeftList.isEmpty() && timeLeftList.get(0) instanceof Number) {
-                                            remainingTime = ((Number) timeLeftList.get(0)).intValue(); // Get the time from index 0
+                                            remainingTime = ((Number) timeLeftList.get(0)).intValue(); //Get the time from index 0
                                             Log.d("DrawingGame", "Got List value for remaining time: " + remainingTime);
                                         } else {
-                                            Log.e("DrawingGame", "CS array is empty or first element is not a number.");
-                                            remainingTime = 0; // Default to 0 if no valid time is found
+                                            Log.e("DrawingGame", "timeLeftList array is empty or first element is not a number.");
+                                            remainingTime = 0; //Default to 0 if no valid time is found
                                         }
                                     } else {
                                         Log.e("DrawingGame", "Expected a Long or array for team " + studentTeamMap.get(Online_user_id) + ", but got: " + timeLeftObj.getClass().getSimpleName());
-                                        remainingTime = 0; // Default to 0 if the type is incorrect
+                                        remainingTime = 0; //Default to 0 if the type is incorrect
                                     }
 
-                                    // Update the UI and handle the countdown
+                                    //Update the UI and handle the countdown
                                     if (remainingTime > 0) {
-                                        // Display the remaining time (subtract 1 to sync with drawer)
+                                        //Display the remaining time and subtract 1 to sync with drawer
                                         timerTextView.setText("Time (時): " + (remainingTime - 1));
-                                        // Schedule the next fetch immediately to sync with drawer
+                                        //Schedule the next fetch immediately to sync with drawer
                                         timerHandler.postDelayed(this, 1000);
                                     }
                                     else if (!userIsDrawer && remainingTime == 0) {
                                         Toast.makeText(DrawingGameActivity.this, "Time's up!", Toast.LENGTH_SHORT).show();
                                         Toast.makeText(DrawingGameActivity.this, "時間切れだ！", Toast.LENGTH_SHORT).show();
-                                        Log.d("DrawingGame", "3-second delay before switching rounds...");
+                                        Log.d("DrawingGame", "3 second delay before switching rounds...");
 
-                                        listenForWordInFirestore();//show word and meaning to guesser
+                                        listenForWordInFirestore();//Show word and meaning to guesser
                                         startLoadingAnimation();
-                                        //3-second delay to make sure Drawer updates round
+                                        //3second delay to make sure Drawer updates round
                                         new Handler(Looper.getMainLooper()).postDelayed(() -> {
                                             stopLoadingAnimation();
-                                            getCurrentRound(); // Now call getCurrentRound after 2 seconds
+                                            getCurrentRound(); //call getCurrentRound after 2 seconds
                                         }, 2000);
                                     }
                                     Log.d("DrawingGame", "Remaining time: " + remainingTime);
@@ -1501,7 +1501,7 @@ public class DrawingGameActivity extends AppCompatActivity {
                                     getCurrentRound();
                                 } else {
                                     Log.e("DrawingGame", "Field for team " + studentTeamMap.get(Online_user_id) + " does not exist.");
-                                    remainingTime = 0; // Default to 0 if no time is found
+                                    remainingTime = 0; //0 if no time is found
                                 }
                             } else {
                                 Log.e("DrawingGame", "Game document not found.");
@@ -1510,7 +1510,7 @@ public class DrawingGameActivity extends AppCompatActivity {
                         .addOnFailureListener(e -> Log.e("DrawingGame", "Error fetching remaining time: " + e.getMessage()));
             }
         };
-        // Start the guesser's timer
+        //Start the guesser timer
         timerHandler.postDelayed(timerRunnable, 0);
     }
 
@@ -1526,10 +1526,10 @@ public class DrawingGameActivity extends AppCompatActivity {
     private void initializeDrawing() {
         if (strokesRef == null) {
             Log.e(TAG, "strokesRef is null. Make sure to initialize it properly.");
-            return; // Early return to prevent further actions with a null reference.
+            return; //Early return to prevent further actions with a null reference.
         }
         loadExistingStrokes();
-        listenforStrokes(); // Ensure real-time updates
+        listenforStrokes();
 
     }
     private void loadExistingStrokes() {
@@ -1555,9 +1555,9 @@ public class DrawingGameActivity extends AppCompatActivity {
                 if (dataSnapshot.exists()) { // Check if the snapshot exists
                     for (DataSnapshot strokeSnapshot : dataSnapshot.getChildren()) {
                         Map<String, Object> strokeData = (Map<String, Object>) strokeSnapshot.getValue();
-                        // Additional logging for strokeData
+
                         Log.d("DrawingGame", "Stroke data: " + strokeData);
-                        // Process strokes as before...
+
                     }
                 } else {
                     Log.d("DrawingGame", "No strokes found under this game ID.");
@@ -1575,7 +1575,7 @@ public class DrawingGameActivity extends AppCompatActivity {
         strokesRef.addChildEventListener(new ChildEventListener() {
             @Override
             public void onChildAdded(DataSnapshot dataSnapshot, String previousChildName) {
-                // A new stroke is added to Firebase, retrieve it
+                // A new stroke is added to Firebase and retrieve it
                 Map<String, Object> strokeData = (Map<String, Object>) dataSnapshot.getValue();
 
                 //Extract stroke data
@@ -1585,18 +1585,18 @@ public class DrawingGameActivity extends AppCompatActivity {
                 Long colorLong = (Long) strokeData.get("color");
                 int color = colorLong.intValue(); // Convert Long to int
 
-                // Cast strokeWidth to Float, checking if it's stored as Long
+                // Cast strokeWidth to Float. check if it's stored as Long
                 Object strokeWidthObj = strokeData.get("strokeWidth");
                 float strokeWidth;
                 if (strokeWidthObj instanceof Long) {
-                    strokeWidth = ((Long) strokeWidthObj).floatValue(); // Convert Long to float
+                    strokeWidth = ((Long) strokeWidthObj).floatValue(); //Convert Long to float
                 } else if (strokeWidthObj instanceof Double) {
-                    strokeWidth = ((Double) strokeWidthObj).floatValue(); // Convert Double to float
+                    strokeWidth = ((Double) strokeWidthObj).floatValue(); //Convert Double to float
                 } else {
-                    strokeWidth = 0; // Default value if strokeWidth is not found or not a recognized type
+                    strokeWidth = 0; // Default value if strokeWidth is not found or not the right type
                     Log.e("DrawingGame", "Invalid strokeWidth type: " + strokeWidthObj.getClass().getSimpleName());
                 }
-                // Deserialize points
+                //Deserialize points
                 List<Point> stroke = drawingView.deserializePoints(serializedPoints);
 
                 // Add the stroke to the DrawingView
@@ -1604,24 +1604,25 @@ public class DrawingGameActivity extends AppCompatActivity {
 
             }
 
+            //Must me implemented but will not use
             @Override
             public void onChildChanged(DataSnapshot dataSnapshot, String previousChildName) {
-                // Handle stroke updates (if necessary)
             }
 
             @Override
             public void onChildRemoved(DataSnapshot dataSnapshot) {
-                // Handle stroke removal (if necessary)
+                //Stroke removal/erase if I have extra time
             }
 
+            //Must me implemented but will not use
             @Override
             public void onChildMoved(DataSnapshot dataSnapshot, String previousChildName) {
-                // Handle stroke moved (if necessary)
             }
 
             @Override
             public void onCancelled(DatabaseError databaseError) {
-                // Handle errors
+                //Handle errors
+                Log.e("DrawingGame", "Error listening for strokes: " + databaseError.getMessage());
             }
         });
     }
@@ -1635,7 +1636,7 @@ public class DrawingGameActivity extends AppCompatActivity {
     private void endGame() {
         // Check if the activity is finishing or destroyed before showing the dialog to prevent memory leaks
         if (!isFinishing() && !isDestroyed()) {
-            getScore(Online_user_id); // Ensure the latest score is fetched
+            getScore(Online_user_id); //Ensure the latest score is fetched
 
             //Inflate
             LayoutInflater inflater = getLayoutInflater();

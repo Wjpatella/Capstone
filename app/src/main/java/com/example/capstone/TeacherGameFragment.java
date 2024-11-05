@@ -274,7 +274,7 @@ public class TeacherGameFragment extends Fragment {
             teamsRound.add(1); // Start with round 1
 
             List<String> lastRound = new ArrayList<>();
-            lastRound.add("Round: 1");
+            lastRound.add("Round (回): 1");
 
             List<String> currentWord = new ArrayList<>();
             currentWord.add("");
