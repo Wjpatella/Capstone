@@ -243,7 +243,7 @@ public class DrawingGameActivity extends AppCompatActivity {
     }
 
     private void setupGame(String selectedTopic, String teacherName, String selectedClass) {
-        topicView.setText("Topic (トピック): " + selectedTopic);// Show selected topic in the UI
+        topicView.setText("Topic トピック: " + selectedTopic);// Show selected topic in the UI
         //Fetch teams from Firestore
         getScore(Online_user_id);
         fetchTeams(selectedTopic ,teacherName, selectedClass, gameId);
@@ -390,7 +390,7 @@ public class DrawingGameActivity extends AppCompatActivity {
 
         builder.setTitle("Tell the drawer Your guess!\n推測を引き出しに伝えてください！")
                 .setMessage("I think the word is...\n「その言葉は...」")
-                .setPositiveButton("Done (ずみ)", (dialog, which) -> {
+                .setPositiveButton("Done ずみ", (dialog, which) -> {
                     //Disable the guess button when done
                     guessButton.setEnabled(false);
                     dialog.dismiss(); //Dismiss the dialog after pressing Done
@@ -580,16 +580,16 @@ public class DrawingGameActivity extends AppCompatActivity {
 
 
     private void pauseGame() {
-        // Logic to pause the timer and drawing
+        //Logic to pause the timer and drawing
         Log.d("GameStatus", "Game is paused for a guess.");
-        // Pause the timer (You may need to implement this)
-        timerTextView.setText("Paused (ポーズ)");  //Update the UI to reflect that the game is paused
-        // Disable drawing while the game is paused
+        //Pause the timer
+        timerTextView.setText("Paused ポーズ");
+        //Disable drawing while the game is paused
         drawingView.setDrawingEnabled(false);
     }
 
     private void showGuessReceivedDialog(String guesserId) {
-        // Check if the activity is valid (not destroyed or finishing) to prevent a crash
+        //Check if the activity is valid to prevent crash
         if (isFinishing() || isDestroyed()) {
             Log.e("DialogError", "Activity is not in a valid state to show dialog.");
             return;
@@ -618,13 +618,13 @@ public class DrawingGameActivity extends AppCompatActivity {
         //dialog
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setView(dialog_guess_receivedView)
-                .setPositiveButton("Correct (正解)", (dialog, which) -> {
+                .setPositiveButton("Correct 正解", (dialog, which) -> {
                     saveScore(guesserId);
                     updateRound();
                     handleGuessResult(guesserId);
                     getCurrentRound();
                 })
-                .setNegativeButton("Wrong (不正解)", (dialog, which) -> {
+                .setNegativeButton("Wrong 不正解", (dialog, which) -> {
                     dialog.dismiss();
                     handleGuessResult(guesserId);
                     resumeGame();
@@ -687,7 +687,7 @@ public class DrawingGameActivity extends AppCompatActivity {
                         if (documentSnapshot.contains("score")) {
                             //Retrieve the score value
                             Integer score = documentSnapshot.getLong("score").intValue(); // Get as long then convert to int
-                            scoreTextView.setText("Score (点): " + score);
+                            scoreTextView.setText("Score 点: " + score);
 
                             Log.d("Score", "Score for guesser " + studentId + ": " + score);
 
@@ -878,7 +878,7 @@ public class DrawingGameActivity extends AppCompatActivity {
 
         // Resume the timer and drawing after the guess has been processed
         Log.d("GameStatus", "Resuming the game.");
-        timerTextView.setText("Time (時): ");//Set the timer to back to something that is not "Paused"
+        timerTextView.setText("Time 時: ");//Set the timer to back to something that is not "Paused"
 
         //startGame();  // Call startGame or your resume logic
         drawingView.setDrawingEnabled(userIsDrawer);  // Enable drawing only if the user is the drawer
@@ -1214,7 +1214,7 @@ public class DrawingGameActivity extends AppCompatActivity {
         }
         //Since teamRoundNumber is only greater than currentRoundNumberFromText when a round is incremented on a correct guess we know that the word was solved if this is true
         if(teamRoundNumber> currentRoundNumberFromText) {
-            roundTextView.setText("Round (回): " + teamRoundNumber);
+            roundTextView.setText("Round 回: " + teamRoundNumber);
 
             Log.d("CurrentRound", "Current round for team: " + teamRoundNumber);
             Log.d("CurrentRound", "User is drawer: " + userIsDrawer);
@@ -1361,13 +1361,13 @@ public class DrawingGameActivity extends AppCompatActivity {
         timerRunnable = new Runnable() {
             @Override
             public void run() {
-                if (!"Paused (ポーズ)".equals(timerTextView.getText().toString())) {
+                if (!"Paused ポーズ".equals(timerTextView.getText().toString())) {
                     //Continue the countdown when not paused
                     if (remainingTime > 0) {
                         remainingTime--;
 
                         //Update UI with the new time
-                        timerTextView.setText("Time (時): " + remainingTime);
+                        timerTextView.setText("Time 時: " + remainingTime);
                     } else if (remainingTime == 0) {
                         Log.d("DrawingGame", String.valueOf(remainingTime));
                         Toast.makeText(DrawingGameActivity.this, "Time's up!", Toast.LENGTH_SHORT).show();
@@ -1478,7 +1478,7 @@ public class DrawingGameActivity extends AppCompatActivity {
                                     //Update the UI and handle the countdown
                                     if (remainingTime > 0) {
                                         //Display the remaining time and subtract 1 to sync with drawer
-                                        timerTextView.setText("Time (時): " + (remainingTime - 1));
+                                        timerTextView.setText("Time 時: " + (remainingTime - 1));
                                         //Schedule the next fetch immediately to sync with drawer
                                         timerHandler.postDelayed(this, 1000);
                                     }
@@ -1644,7 +1644,7 @@ public class DrawingGameActivity extends AppCompatActivity {
 
             //Initialize dialog views
             TextView finalScoreTextView = dialog_end_gameView.findViewById(R.id.finalScoreTextView);
-            finalScoreTextView.setText("Final Score (スコア)\n" + scoreTextView.getText());
+            finalScoreTextView.setText("Final Score スコア\n" + scoreTextView.getText());
             Button readAloudButton = dialog_end_gameView.findViewById(R.id.readAloudButton);
             readAloudButton.setText(vocabWordTextView.getText().toString());
 

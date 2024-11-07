@@ -9,7 +9,7 @@
         android:id="@+id/endGameTitle"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Game Over (ゲームオーバー)"
+        android:text="Game Over ゲームオーバー"
         android:textStyle="bold"
         android:textSize="22sp"
         android:gravity="center"
@@ -48,7 +48,7 @@
         android:id="@+id/finalScoreTextView"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Final Score (スコア)"
+        android:text="Final Score スコア"
         android:textColor="@color/black"
         android:textSize="18sp"
         android:layout_marginTop="10dp"
@@ -59,7 +59,7 @@
         android:id="@+id/okButton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Done (ずみ)"
+        android:text="Done ずみ"
         android:layout_marginTop="16dp"
         android:layout_gravity="center_horizontal"/>
 

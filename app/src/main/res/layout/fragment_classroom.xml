@@ -23,7 +23,7 @@
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_marginTop="10dp"
+        android:layout_marginTop="5dp"
         android:layout_marginBottom="50dp"
         android:orientation="vertical"
         android:padding="16dp"
@@ -113,7 +113,14 @@
                 android:src="@drawable/baseline_person_remove_24" />
 
         </LinearLayout>
-
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:paddingBottom="8dp"
+            android:text="Class"
+            android:textColor="@color/black"
+            android:textSize="16sp"
+            android:textStyle="bold" />
         <!-- Grid of Students -->
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/student_grid"

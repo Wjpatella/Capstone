@@ -102,13 +102,13 @@ public class ProfileFragment extends Fragment {
                 FS_DBHelper.fetchStudentData((student_name, teacherName) -> {
                     if (student_name != null) {
                         studentName.setText(student_name);
-                        teacherTextView.setText("Teacher（先生）: " + teacherName);
+                        teacherTextView.setText("Teacher 先生: " + teacherName);
                         getScore(student_name);
 
                         //Get the students class name and load the leaderboard for that class
                         getStudentsClassName(teacherName, className -> {
                             if (className != null) {
-                                leaderboardTitle.setText("Leaderboard (リーダーボード) - " + className);
+                                leaderboardTitle.setText("Leaderboard リーダーボード - " + className);
                                 getStudentsForClass(teacherName, className); // Load the students and leaderboard for this class
                             }
                         });
@@ -187,14 +187,14 @@ public class ProfileFragment extends Fragment {
             nameHeader.setText("Name\nなまえ");
             nameHeader.setTextColor(Color.parseColor("#000000"));
             nameHeader.setPadding(16, 16, 16, 16);
-            nameHeader.setTypeface(null, Typeface.BOLD); //Set Bold
+            nameHeader.setTypeface(null, Typeface.BOLD);
             nameHeader.setPaintFlags(nameHeader.getPaintFlags() | Paint.UNDERLINE_TEXT_FLAG); // Set Underline
 
             TextView scoreHeader = new TextView(getContext());
             scoreHeader.setText("Last Score\n前回のスコア");
             scoreHeader.setTextColor(Color.parseColor("#000000"));
             scoreHeader.setPadding(16, 16, 16, 16);
-            scoreHeader.setTypeface(null, Typeface.BOLD); // Set Bold
+            scoreHeader.setTypeface(null, Typeface.BOLD);
             scoreHeader.setPaintFlags(scoreHeader.getPaintFlags() | Paint.UNDERLINE_TEXT_FLAG); // Set Underline
 
             // Add headers to the row
@@ -305,40 +305,43 @@ public class ProfileFragment extends Fragment {
     }
 
         private void setPositionsForStudents(List<String> students, List<Integer> scores) {
-            // Create a list of student-score pairs
+            // Create a list of student to score pairs
             List<Pair<String, Integer>> studentScores = new ArrayList<>();// Pair is a class that holds two values
             for (int i = 0; i < students.size(); i++) {
                 studentScores.add(new Pair<>(students.get(i), scores.get(i)));
             }
 
-            // Sort the list based on scores in descending order. Compare scores to find positions.
+            // Sort the list based on scores in descending order and compare scores to find positions
             studentScores.sort((position1, position2) -> position2.second.compareTo(position1.second));
 
             Log.d("Leaderboard", "Student Scores: " + studentScores);
 
-            // Clear the leaderboard table before adding new rows
+            // Clear leaderboard table before adding new rows
             leaderboardTable.removeAllViews();
 
 
             setupLeaderboardTable();
 
-            // Populate the leaderboard table with ranked students. Highest to lowest scores
+            //Populate the leaderboard table with ranked students. Goes Highest to lowest scores
             for (int i = 0; i < studentScores.size(); i++) {
                 Pair<String, Integer> studentScore = studentScores.get(i);
 
                 TableRow row = new TableRow(getContext());
 
                 TextView position = new TextView(getContext());
-                position.setText(String.valueOf(i + 1)); // Set position
+                position.setText(String.valueOf(i + 1)); //set position
                 position.setPadding(16, 16, 16, 16);
+                position.setTextColor(Color.parseColor("#000000"));
 
                 TextView name = new TextView(getContext());
-                name.setText(studentScore.first); // Student name
+                name.setText(studentScore.first); //student name
                 name.setPadding(16, 16, 16, 16);
+                name.setTextColor(Color.parseColor("#000000"));
 
                 TextView score = new TextView(getContext());
-                score.setText(String.valueOf(studentScore.second)); // Student score
+                score.setText(String.valueOf(studentScore.second)); //student score
                 score.setPadding(16, 16, 16, 16);
+                score.setTextColor(Color.parseColor("#000000"));
 
                 row.addView(position);
                 row.addView(name);
@@ -362,7 +365,7 @@ public class ProfileFragment extends Fragment {
                             if (documentSnapshot.contains("score")) {
                                 //Retrieve the score value
                                 Integer score = documentSnapshot.getLong("score").intValue(); // Get as long then convert to int
-                                lastscoreTextView.setText("Previous Score（前のスコア）: " + score);
+                                lastscoreTextView.setText("Last Score 前回のスコア: " + score);
 
                                 Log.d("Score", "Score for guesser " + studentId + ": " + score);
 

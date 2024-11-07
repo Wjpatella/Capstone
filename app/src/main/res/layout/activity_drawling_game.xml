@@ -20,7 +20,7 @@
             android:id="@+id/timerTextView"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Time (時):"
+            android:text="Time 時:"
             android:textSize="18sp"
             android:layout_marginRight="20dp"
             android:textColor="@android:color/holo_red_dark"/>
@@ -33,7 +33,7 @@
             android:id="@+id/scoreTextView"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Score (点): 0"
+            android:text="Score 点: 0"
             android:textSize="18sp"
             android:paddingLeft="60dp"
             android:textColor="@android:color/holo_green_dark"/>
@@ -55,7 +55,7 @@
             android:id="@+id/drawerTextView"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Drawer (かきて): "
+            android:text="Drawer かきて: "
             android:textColor="@android:color/black"
             android:textSize="14sp" />
         <!-- Drawer text -->
@@ -96,7 +96,7 @@
             android:id="@+id/topicView"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Topic (トピック):"
+            android:text="Topic トピック:"
             android:textColor="@android:color/black"
             android:textSize="14sp" />
 

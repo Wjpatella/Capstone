@@ -95,7 +95,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
-            android:text="Teacher (先生): "
+            android:text="Teacher 先生: "
             android:textColor="@color/black"
             android:textAlignment="center"
             android:visibility="visible"
