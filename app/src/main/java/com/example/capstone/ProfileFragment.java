@@ -2,6 +2,7 @@ package com.example.capstone;
 
 import static com.example.capstone.FS_DBHelper.Online_user_id;
 
+import android.content.Intent;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Typeface;
@@ -14,6 +15,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
+import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.Spinner;
@@ -43,6 +45,8 @@ public class ProfileFragment extends Fragment {
         private Spinner teacherLeaderBoardClassSpinner;
         private TableLayout leaderboardTable;
 
+        private Button logoutButton;
+
 
         public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState){
             View view = inflater.inflate(R.layout.fragment_profile, container, false); //inflate the layout
@@ -61,6 +65,11 @@ public class ProfileFragment extends Fragment {
             class_title = view.findViewById(R.id.select_class_title);
             teacherTextView = view.findViewById(R.id.teacherTextView);
             leaderboardTable = view.findViewById(R.id.leaderboard_table);
+
+            //Initialize Logout Button
+            logoutButton = view.findViewById(R.id.logout_button);
+
+            logoutButton.setOnClickListener(v -> logout());
 
             if (FS_DBHelper.Teacher_online==true) {
                 teacherTextView.setVisibility(View.GONE);
@@ -381,5 +390,15 @@ public class ProfileFragment extends Fragment {
                         Log.e("FirestoreError", "Error getting score for guesser: ", e);
                     });
         }
+
+    private void logout() {
+        Intent intent = new Intent(getActivity(), LoginActivity.class);
+        //Clear back button stack to prevent going back to profile fragment
+        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+        startActivity(intent);
+        getActivity().finish(); //End ProfileFragment
+    }
+
+
 
     }
