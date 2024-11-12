@@ -18,7 +18,9 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.Toast;
 
+import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.ListenerRegistration;
 
 
 public class StudentGameFragment extends Fragment {
@@ -27,8 +29,9 @@ public class StudentGameFragment extends Fragment {
     private View gameStatusIndicator;
     private String studentsTeacher;
     private String studentGameStatus;
-    private FirebaseDatabase realtimeDb;
+    private ListenerRegistration gameStatusListener;
 
+    private ListenerRegistration gameExistenceListener;
 
     private boolean gameInFireStore = false;
 
@@ -37,13 +40,16 @@ public class StudentGameFragment extends Fragment {
         Student_online=true;
         JoinGameButton = view.findViewById(R.id.join_game_button);
         gameStatusIndicator = view.findViewById(R.id.game_status_indicator);
-        updateIndicatorColor(studentGameStatus);// Initialize gameStatusIndicator
+        //updateIndicatorColor(studentGameStatus);// Initialize gameStatusIndicator
+        updateIndicatorColor(null);
         getStudentsTeacher();
 
         JoinGameButton.setOnClickListener(v -> goto_DrawlingGameActivity());
 
         return view;
     }
+
+
 
     private void getStudentsTeacher() {//Check if this student has a teacher
         if (Online_user_id != null) {
@@ -54,61 +60,78 @@ public class StudentGameFragment extends Fragment {
                             Student student = documentSnapshot.toObject(Student.class);
                             if (student != null) {
                                 studentsTeacher = student.getTeacher();
-                                Log.e("StudentClassroomFragment", "Teacher "+ studentsTeacher +" found for "+ Online_user_id);
+                                Log.e("StudentGameFragment", "Teacher "+ studentsTeacher +" found for "+ Online_user_id);
                                 checkGameStatus(studentsTeacher);
                             } else {
-                                Log.e("StudentClassroomFragment", "Student document not found");
+                                Log.e("StudentGameFragment", "Student document not found");
                             }
                         }
                     })
-                    .addOnFailureListener(e -> Log.e("StudentClassroomFragment", "Error loading student data", e));
+                    .addOnFailureListener(e -> Log.e("StudentGameFragment", "Error loading student data", e));
         }
     }
 
-    private void checkGameStatus(String studentsTeacher) {//Check if the student has an active game (in student collection and then checks games collection)
-        if (studentsTeacher != null) {
-            FirebaseFirestore.getInstance().collection("students").document(Online_user_id)
-                    .get()
-                    .addOnSuccessListener(documentSnapshot -> {
-                        if (documentSnapshot.exists()) {
+    private void checkGameStatus(String studentsTeacher) {
+        if (studentsTeacher != null && Online_user_id != null) {
+            //Stop any existing listener to prevent duplicate listeners
+            if (gameStatusListener != null) {
+                gameStatusListener.remove();
+            }
+
+            gameStatusListener = FirebaseFirestore.getInstance()
+                    .collection("students")
+                    .document(Online_user_id)
+                    .addSnapshotListener((documentSnapshot, e) -> {
+                        if (e != null) {
+                            Log.e("StudentGameFragment", "Listen failed.", e);
+                            return;
+                        }
+
+                        if (documentSnapshot != null && documentSnapshot.exists()) {
                             Student student = documentSnapshot.toObject(Student.class);
                             if (student != null) {
-                                this.studentGameStatus = student.getActiveGame(); // Get student's active game ID
+                                studentGameStatus = student.getActiveGame();
+
                                 if (studentGameStatus != null) {
-                                    // Check if the game with studentGameStatus exists in the "games" collection in Firestore
-                                    FirebaseFirestore.getInstance().collection("games").document(studentGameStatus)
-                                            .get()
-                                            .addOnSuccessListener(gameSnapshot -> {
-                                                if (gameSnapshot.exists()) {
-                                                    // Game ID exists in the "games" collection
-                                                    gameInFireStore = true;
-                                                    updateIndicatorColor(studentGameStatus); // Update indicator based on game status
-                                                    Log.e("StudentClassroomFragment", "Active game found for student: " + Online_user_id);
-                                                } else {
-                                                    // No game with this ID found in the "games" collection
-                                                    Log.e("StudentClassroomFragment", "No active game found in Firestore for game ID: " + studentGameStatus);
-                                                }
-                                            })
-                                            .addOnFailureListener(e -> {
-                                                Log.e("StudentClassroomFragment", "Error checking Firestore: " + e.getMessage());
-                                            });
+                                    checkGameInFirestore();
                                 } else {
-                                    Log.e("StudentClassroomFragment", "No active game found for student: " + Online_user_id);
+                                    gameInFireStore = false;
+                                    updateIndicatorColor(null); // Set to red if no game is active
                                 }
-                            } else {
-                                Log.e("StudentClassroomFragment", "Student document not found");
                             }
-                        } else {
-                            Log.e("StudentClassroomFragment", "Snapshot failed");
                         }
-                    })
-                    .addOnFailureListener(e -> {
-                        Log.e("StudentClassroomFragment", "Error fetching student: " + e.getMessage());
                     });
         } else {
             Toast.makeText(getActivity(), "You do not have a Teacher", Toast.LENGTH_SHORT).show();
             Toast.makeText(getActivity(), "あなたには先生がいない。", Toast.LENGTH_SHORT).show();
         }
+    }
+
+    private void checkGameInFirestore() {
+
+        if (studentGameStatus == null) {
+            Log.e("StudentGameFragment", "No game status found for student.");
+            updateIndicatorColor(null); //Set indicator to red if no game status
+            return;
+        }
+
+        //Remove any existing listener to prevent duplicate listeners
+        if (gameExistenceListener != null) {
+            gameExistenceListener.remove();
+        }
+
+        //Set up the real time listener for the game document
+        DocumentReference gameRef = FirebaseFirestore.getInstance().collection("games").document(studentGameStatus);
+        gameExistenceListener = gameRef.addSnapshotListener((gameSnapshot, e) -> {
+            if (e != null) {
+                Log.e("StudentGameFragment", "Error listening to game document", e);
+                return;
+            }
+
+            //Check if the game document exists and update the color indicator
+            gameInFireStore = gameSnapshot != null && gameSnapshot.exists();
+            updateIndicatorColor(studentGameStatus);
+        });
     }
 
 
@@ -118,15 +141,15 @@ public class StudentGameFragment extends Fragment {
         drawable = DrawableCompat.wrap(drawable);
 
         if (studentGameStatus != null && gameInFireStore) {
-            DrawableCompat.setTint(drawable, getResources().getColor(R.color.green));
+            DrawableCompat.setTint(drawable, getResources().getColor(R.color.green));//Game active
         } else {
-            DrawableCompat.setTint(drawable, getResources().getColor(R.color.red));
+            DrawableCompat.setTint(drawable, getResources().getColor(R.color.red));//Game inactive
         }
     }
 
     public void goto_DrawlingGameActivity() {
         if (studentGameStatus != null && gameInFireStore==true) {
-            Log.d("StudentGameFragment", "studentGameStatus: " + studentGameStatus); // Debugging
+            Log.d("StudentGameFragment", "studentGameStatus: " + studentGameStatus);
             Intent intent = new Intent(getActivity(), DrawingGameActivity.class);
             intent.putExtra("studentGameStatus", studentGameStatus);
             startActivity(intent);
@@ -134,6 +157,29 @@ public class StudentGameFragment extends Fragment {
         else {
             Toast.makeText(getActivity(), "No active game found.", Toast.LENGTH_SHORT).show();
             Toast.makeText(getActivity(), "アクティブな試合は見つかりませんでした。", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    @Override
+    public void onStart() {
+        super.onStart();
+        //Start the listener to check game status when fragment becomes visible
+        if (studentsTeacher != null) {
+            checkGameStatus(studentsTeacher);
+        }
+    }
+
+    @Override
+    public void onStop() {
+        super.onStop();
+        //Remove the listener when fragment is no longer visible
+        if (gameStatusListener != null) {
+            gameStatusListener.remove();
+            gameStatusListener = null;
+        }
+        if (gameExistenceListener != null) {
+            gameExistenceListener.remove();
+            gameExistenceListener = null;
         }
     }
 
