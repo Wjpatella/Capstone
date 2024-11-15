@@ -39,8 +39,8 @@
         android:id="@+id/student_profile_image"
         android:layout_width="120dp"
         android:layout_height="166dp"
-        android:layout_marginTop="12dp"
-        android:layout_marginEnd="25dp"
+        android:layout_marginTop="0dp"
+        android:layout_marginEnd="0dp"
         android:visibility="visible"
         app:layout_constraintEnd_toStartOf="@+id/profile_linearlayout"
         app:layout_constraintHorizontal_bias="0.991"
@@ -50,55 +50,82 @@
 
     <LinearLayout
         android:id="@+id/profile_linearlayout"
-        android:layout_width="228dp"
+        android:layout_width="245dp"
         android:layout_height="125dp"
-        android:layout_marginTop="20dp"
         android:layout_marginEnd="120dp"
         android:layout_marginBottom="399dp"
         android:orientation="vertical"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.424"
+        app:layout_constraintHorizontal_bias="0.505"
         app:layout_constraintStart_toEndOf="@+id/leaderboard_textview"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.117">
+        app:layout_constraintVertical_bias="0.077">
 
         <!-- teacher text-->
         <TextView
-            android:textColor="@color/black"
             android:id="@+id/teacher_viewtext"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:textStyle="bold"
             android:text=""
             android:textAlignment="center"
-            android:textSize="34dp"
+            android:textColor="@color/black"
+            android:textSize="25dp"
             android:visibility="gone"
             tools:layout_editor_absoluteX="175dp"
             tools:layout_editor_absoluteY="126dp" />
+
+        <TextView
+            android:id="@+id/number_of_students_text"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:text="Students in Class: "
+            android:textAlignment="center"
+            android:textColor="@color/black"
+            android:visibility="gone"
+            tools:layout_editor_absoluteX="175dp"
+            tools:layout_editor_absoluteY="126dp" />
+
+        <TextView
+            android:id="@+id/average_score_text"
+            android:layout_width="match_parent"
+            android:layout_height="36dp"
+            android:layout_marginTop="8dp"
+            android:text="Average Score of Class: "
+            android:textAlignment="center"
+            android:textColor="@color/black"
+            android:visibility="gone"
+            tools:layout_editor_absoluteX="175dp"
+            tools:layout_editor_absoluteY="126dp" />
+
+
         <!-- teacher text-->
 
         <!-- student text-->
         <TextView
-            android:textColor="@color/black"
             android:id="@+id/student_viewtext"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text=""
+            android:textStyle="bold"
             android:textAlignment="center"
-            android:textSize="34dp"
+            android:textColor="@color/black"
+            android:textSize="25dp"
             android:visibility="visible"
             tools:layout_editor_absoluteX="175dp"
             tools:layout_editor_absoluteY="126dp" />
 
-        <!-- student score text-->
+        <!-- student teacher text-->
         <TextView
             android:id="@+id/teacherTextView"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
             android:text="Teacher 先生: "
-            android:textColor="@color/black"
             android:textAlignment="center"
+            android:textColor="@color/black"
             android:visibility="visible"
             tools:layout_editor_absoluteX="175dp"
             tools:layout_editor_absoluteY="126dp" />

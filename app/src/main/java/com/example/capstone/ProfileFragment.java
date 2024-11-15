@@ -35,7 +35,7 @@ import java.util.Map;
 
 public class ProfileFragment extends Fragment {
 
-        private TextView teacherName, lastscoreTextView, studentName, leaderboardTitle, class_title, teacherTextView;
+        private TextView teacherName, lastscoreTextView, studentName, leaderboardTitle, class_title, teacherTextView, averageScoreTextView, numberOfStudentsTextView;
         private ImageView teacher_profileImage;
 
         private ImageView student_profileImage;
@@ -65,6 +65,8 @@ public class ProfileFragment extends Fragment {
             class_title = view.findViewById(R.id.select_class_title);
             teacherTextView = view.findViewById(R.id.teacherTextView);
             leaderboardTable = view.findViewById(R.id.leaderboard_table);
+            averageScoreTextView = view.findViewById(R.id.average_score_text);
+            numberOfStudentsTextView = view.findViewById(R.id.number_of_students_text);
 
             //Initialize Logout Button
             logoutButton = view.findViewById(R.id.logout_button);
@@ -81,6 +83,9 @@ public class ProfileFragment extends Fragment {
                 teacherName.setVisibility(View.VISIBLE);
                 teacher_profileImage.setVisibility(View.VISIBLE);
 
+                averageScoreTextView.setVisibility(View.VISIBLE);
+                numberOfStudentsTextView.setVisibility(View.VISIBLE);
+
                 setupLeaderboardClassSpinner(Online_user_id);
 
 
@@ -91,12 +96,11 @@ public class ProfileFragment extends Fragment {
                     if (teacher_name != null) {
                         teacherName.setText(teacher_name);
                     }
-            /*if (teacher_email != null) {
-                teacherEmail.setText(teacher_email);
-            }
-             */
+
                 });
             } else if (FS_DBHelper.Student_online==true) {
+                averageScoreTextView.setVisibility(View.GONE);
+                numberOfStudentsTextView.setVisibility(View.GONE);
                 teacherLeaderBoardClassSpinner.setVisibility(View.GONE);
                 class_title.setVisibility(View.GONE);
                 teacherName.setVisibility(View.GONE);
@@ -107,7 +111,7 @@ public class ProfileFragment extends Fragment {
                 student_profileImage.setVisibility(View.VISIBLE);
                 setupLeaderboardTable();
 
-                // Fetch the student's data and update the TextView when data is available
+                //Fetch the student's data and update the TextView when data is available
                 FS_DBHelper.fetchStudentData((student_name, teacherName) -> {
                     if (student_name != null) {
                         studentName.setText(student_name);
@@ -118,15 +122,11 @@ public class ProfileFragment extends Fragment {
                         getStudentsClassName(teacherName, className -> {
                             if (className != null) {
                                 leaderboardTitle.setText("Leaderboard リーダーボード - " + className);
-                                getStudentsForClass(teacherName, className); // Load the students and leaderboard for this class
+                                getStudentsForClass(teacherName, className); //Load the students and leaderboard for this class
                             }
                         });
                     }
 
-            /*if (teacher_email != null) {
-                teacherEmail.setText(teacher_email);
-            }
-             */
                 });
 
             }
@@ -139,7 +139,7 @@ public class ProfileFragment extends Fragment {
         }
 
     private void setupLeaderboardClassSpinner(String teacher_name) {
-        // Fetch the list of classes for the teacher
+        //Fetch the list of classes for the teacher
         firestore.collection("teachers").document(teacher_name)
                 .get()
                 .addOnSuccessListener(documentSnapshot -> {
@@ -148,7 +148,7 @@ public class ProfileFragment extends Fragment {
                         if (teacherData != null) {
                             Map<String, Object> classes = (Map<String, Object>) teacherData.get("classes");
                             if (classes != null) {
-                                // Populate class spinner with class names
+                                //Populate class spinner with class names
                                 String[] classArray = classes.keySet().toArray(new String[0]);
                                 ArrayAdapter<String> classAdapter = new ArrayAdapter<>(getContext(),
                                         android.R.layout.simple_spinner_item, classArray);
@@ -156,7 +156,7 @@ public class ProfileFragment extends Fragment {
                                 teacherLeaderBoardClassSpinner.setAdapter(classAdapter);
 
 
-                                // Update leaderboard when a class is selected
+                                //Update leaderboard when a class is selected
                                 teacherLeaderBoardClassSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
                                     @Override
                                     public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
@@ -164,12 +164,18 @@ public class ProfileFragment extends Fragment {
                                         leaderboardTitle.setText("Leaderboard - " + selectedClass);
                                         //loadLeaderboard(selectedClass);
                                         //setupLeaderboardTable();
+
+                                        //Clear leaderboard and reset average display
+                                        leaderboardTable.removeAllViews();
+                                        setupLeaderboardTable(); //Re-add header row
+                                        averageScoreTextView.setText("");//Clear previous A.S.
+
                                         getStudentsForClass(teacher_name, selectedClass); // Fetch and display the leaderboard for the selected class
                                     }
 
                                     @Override
                                     public void onNothingSelected(AdapterView<?> parent) {
-                                        // Handle case where no class is selected
+                                        //case where no class is selected
                                     }
                                 });
                             }
@@ -217,6 +223,8 @@ public class ProfileFragment extends Fragment {
 
         }
 
+        //Make method to compute Average Student Score in the selected class if user is a teacher
+
     private void getStudentsForClass(String teacher, String className) {//Gets the students in there class for the student
         Log.d("ProfileFragment", "teacher: " + teacher);
         Log.d("ProfileFragment", "Class Name: " + className);
@@ -229,9 +237,10 @@ public class ProfileFragment extends Fragment {
                         if (classesData != null && classesData.containsKey("classes")) {
                             Map<String, ArrayList<String>> currentClasses = (Map<String, ArrayList<String>>) classesData.get("classes");
                             ArrayList<String> studentNames = currentClasses.get(className);
-                            Log.d("ProfileFragment", "Studnets in class: " + studentNames );
+                            Log.d("ProfileFragment", "Students in class: " + studentNames );
                             if (studentNames != null) {
-
+                                numberOfStudentsTextView.setText("Students in Class: " + studentNames.size());
+                                averageScoreTextView.setText("Class Score Average: ");
                                 getStudentsScores(studentNames);
 
                             }
@@ -278,6 +287,9 @@ public class ProfileFragment extends Fragment {
         //List<String> students = new ArrayList<>(studentNames); //avoid modifying the original list
         Map<String, Integer> studentScoresMap = new HashMap<>();
 
+        final int[] scoresFetchedCount = {0};  //Track the number of fetched scores
+        final int[] totalScore = {0};  //Track the cumulative score
+
         for (String studentId : studentNames) {
             firestore.collection("students")
                     .document(studentId)
@@ -289,16 +301,28 @@ public class ProfileFragment extends Fragment {
 
                             Long scoreValue = documentSnapshot.getLong("score");
                             Integer score = (scoreValue != null) ? scoreValue.intValue() : 0;
-                            studentScoresMap.put(studentId, score); // Stored in map with studentId as key
+                            studentScoresMap.put(studentId, score); //Stored in map with studentId as key
+                            totalScore[0] += score;
                         } else {
                             Log.e("getStudentsScores", "Document for student " + studentId + " does not exist.");
                             studentScoresMap.put(studentId, 0); // Set score to 0 if the document does not exist
                         }
 
-                        // After fetching all the scores, update the leaderboard
-                        if (studentScoresMap.size() == studentNames.size()) {
-                            updateLeaderboardWithScores(studentScoresMap); // Pass students and their scores to set positions
+                        //Increment the fetched count
+                        scoresFetchedCount[0]++;
+
+                        //Check if all scores have been fetched
+                        if (scoresFetchedCount[0] == studentNames.size()) {
+                            if (!studentScoresMap.isEmpty()) {
+                                int averageScore = totalScore[0] / studentScoresMap.size();
+                                averageScoreTextView.setText("Class Score Average: " + averageScore);
+                                //After fetching all the scores update the leaderboard
+                                updateLeaderboardWithScores(studentScoresMap); //Pass students and their scores to set positions
+                            } else {
+                                averageScoreTextView.setText("Class Score Average: N/A");
+                            }
                         }
+
                     })
                     .addOnFailureListener(e -> Log.e("FirestoreError", "Error getting score for student " + studentId, e));
         }
