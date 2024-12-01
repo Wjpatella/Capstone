@@ -48,7 +48,7 @@
         android:id="@+id/finalScoreTextView"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Final Score スコア"
+        android:text="Final Score さいご点"
         android:textColor="@color/black"
         android:textSize="18sp"
         android:layout_marginTop="10dp"

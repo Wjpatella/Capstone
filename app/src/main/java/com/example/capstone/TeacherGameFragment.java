@@ -63,7 +63,7 @@ public class TeacherGameFragment extends Fragment {
 
 
     private static final String TAG = "TeacherGameFragment";
-    private String teacherName = Online_user_id; // Replace with the logged-in teacher's name
+    private String teacherName = Online_user_id; //Replace with the logged-in teacher's name
 
     @Nullable
     @Override
@@ -89,7 +89,7 @@ public class TeacherGameFragment extends Fragment {
         roundSpinner = view.findViewById(R.id.round_spinner);
         //include round
 
-        // Set up spinners
+        //Set up spinners
         setUpSpinners();
 
 
@@ -177,7 +177,7 @@ public class TeacherGameFragment extends Fragment {
                 .addOnFailureListener(e -> Log.e(TAG, "Error checking active game status: ", e));
     }
 
-    // Create a new game with timer, mode, and class
+    //Create a new game with timer, mode, and class
     private void createNewGame( String timer, String mode, String selectedClass, String selectedTopic, String selectedRounds) {//move to DrawingGameActivity?
 
         String gameId = "game_" + System.currentTimeMillis(); // Example game ID
@@ -208,7 +208,7 @@ public class TeacherGameFragment extends Fragment {
                     Log.d(TAG, "Game started: " + gameId);
 
 
-                    // After the data is successfully set, start the drawing game activity
+                    //After the data is successfully set start the drawing game activity
                     uploadGameDataToFirestore(gameId, timer, mode, selectedClass, selectedTopic, Online_user_id, selectedRounds, teamDrawers);
                 })
                 .addOnFailureListener(e -> {
@@ -219,7 +219,7 @@ public class TeacherGameFragment extends Fragment {
 
     }
 
-    // Method to randomly select a student from each team, ensuring each team has at least two students
+    //Method to randomly select a student from each team, ensuring each team has at least two students
     private Map<String, String> selectFirstDrawersForTeams() {
         Map<String, String> teamDrawers = new HashMap<>();
 
@@ -339,8 +339,6 @@ public class TeacherGameFragment extends Fragment {
                             // Fetch the class name associated with the active game
                             getClasNameOfLastGame(activeGameId); // Show the delete confirmation dialog
 
-                           // deleteGameData(activeGameId); // Call method to delete game data
-                           // clearTeachersActiveGame(); // Clear the teacher's activeGame field
                         } else {
                             Toast.makeText(getContext(), "No active game found to delete.", Toast.LENGTH_SHORT).show();
                         }
@@ -625,14 +623,14 @@ public class TeacherGameFragment extends Fragment {
     }
 
     private void showNoClassesDialog() {//prevents error if no classes exist for teacher
-        new AlertDialog.Builder(getActivity()) //Use 'this' if in Activity; replace with 'getActivity()' in Fragment
+        new AlertDialog.Builder(getActivity())
                 .setTitle("No Classes")
                 .setMessage("You don't have any classes yet. Please create one to start a game.")
                 .setPositiveButton(android.R.string.ok, null)
                 .show();
     }
 
-    // Show a dialog when no teams exist in "Team Mode"
+    //Show a dialog when no teams exist in "Team Mode"
     private void showNoTeamsDialog() {
         new AlertDialog.Builder(getActivity())
                 .setTitle("No Teams")
