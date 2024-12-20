@@ -1,3 +1,7 @@
+UNG capstone project
+PictoSketch 
+by William J Patella, Jr
+
 Lunch in Android Studio
 
   Recomended for best experience
