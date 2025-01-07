@@ -8,4 +8,4 @@ Launch in Android Studio
   -Boot on Pixel_3a_API_34.avd on Android 14
 
 Notes
--Wi-fi connection is required for login so you can connect to the firebase
+-Wi-fi connection is required for login so you can connect to the database
