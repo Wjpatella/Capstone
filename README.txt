@@ -2,7 +2,7 @@ UNG capstone project
 PictoSketch 
 by William J Patella, Jr
 
-Lunch in Android Studio
+Launch in Android Studio
 
   Recomended for best experience
   -Boot on Pixel_3a_API_34.avd on Android 14
